@@ -5,6 +5,7 @@ import org.springframework.validation.FieldError;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 
 import java.util.List;
+
 public class Validate {
     public static void validate(BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
