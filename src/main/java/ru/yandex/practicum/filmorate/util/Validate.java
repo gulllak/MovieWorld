@@ -7,7 +7,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import java.util.List;
 public class Validate {
     public static void validate(BindingResult bindingResult) {
-        if(bindingResult.hasErrors()) {
+        if (bindingResult.hasErrors()) {
             StringBuilder errorMessage = new StringBuilder();
             List<FieldError> errors = bindingResult.getFieldErrors();
             for (FieldError error : errors) {

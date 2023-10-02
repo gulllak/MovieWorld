@@ -32,7 +32,7 @@ public class UserController {
 
     @PostMapping
     public User create(@RequestBody @Valid User user, BindingResult bindingResult) {
-        if(user.getName() == null || user.getName().isBlank()) {
+        if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
 
@@ -47,7 +47,7 @@ public class UserController {
     public User update(@RequestBody @Valid User updatedUser, BindingResult bindingResult) {
         Validate.validate(bindingResult);
 
-        if(users.containsKey(updatedUser.getId())) {
+        if (users.containsKey(updatedUser.getId())) {
             users.put(updatedUser.getId(), updatedUser);
             log.info("Данные пользователя изменены");
         } else {
