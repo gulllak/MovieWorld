@@ -22,7 +22,7 @@ import java.util.Map;
 @Slf4j
 @RequestMapping("/films")
 public class FilmController {
-    static int id = 0;
+    private int id = 0;
     private final Map<Integer, Film> films = new HashMap<>();
 
     @GetMapping

@@ -38,8 +38,6 @@ class FilmControllerTest {
 
     @BeforeEach
     public void init() {
-        FilmController.id = 0;
-
         film.setName("RRR");
         film.setDescription("Indian");
         film.setReleaseDate(LocalDate.of(2022, 3, 24));

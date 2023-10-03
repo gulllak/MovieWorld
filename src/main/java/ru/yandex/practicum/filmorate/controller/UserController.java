@@ -22,7 +22,7 @@ import java.util.Map;
 @Slf4j
 @RequestMapping("/users")
 public class UserController {
-    static int id = 0;
+    private int id = 0;
     private final Map<Integer, User> users = new HashMap<>();
 
     @GetMapping

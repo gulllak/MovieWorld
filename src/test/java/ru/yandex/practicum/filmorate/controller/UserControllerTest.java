@@ -37,8 +37,6 @@ class UserControllerTest {
 
     @BeforeEach
     public void init() {
-        UserController.id = 0;
-
         user.setEmail("mail@mail.ru");
         user.setLogin("user");
         user.setName("Vasya");
