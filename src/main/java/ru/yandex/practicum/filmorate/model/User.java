@@ -7,6 +7,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.PastOrPresent;
 import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
 public class User {
@@ -16,8 +17,8 @@ public class User {
     @NotBlank(message = "Логин не может быть пустым")
     @Pattern(regexp = "^\\S*$", message = "В логине не может быть пробелов")
     private String login;
-
     private String name;
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
+    private Set<Integer> friends;
 }
