@@ -33,7 +33,6 @@ public class UserController {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-
         return userService.create(user);
     }
 
