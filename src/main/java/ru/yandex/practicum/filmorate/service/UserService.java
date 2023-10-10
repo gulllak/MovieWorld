@@ -55,7 +55,6 @@ public class UserService {
         friend.getFriends().add(id);
     }
 
-
     public List<User> getFriends(int id) {
         User user = userStorage.getUserById(id);
         List<User> friends = new ArrayList<>();
