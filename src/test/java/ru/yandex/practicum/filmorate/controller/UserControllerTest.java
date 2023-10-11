@@ -9,14 +9,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -30,8 +28,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class UserControllerTest {
     private final User user = new User();
+
     @Autowired
     private MockMvc mockMvc;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -41,6 +41,7 @@ class UserControllerTest {
         user.setLogin("user");
         user.setName("Vasya");
         user.setBirthday(LocalDate.of(2000, 5, 5));
+        user.setFriends(new HashSet<>());
     }
 
     @Test
@@ -53,63 +54,53 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.email").value("mail@mail.ru"))
                 .andExpect(jsonPath("$.login").value("user"))
                 .andExpect(jsonPath("$.name").value("Vasya"))
-                .andExpect(jsonPath("$.birthday").value("2000-05-05"));
+                .andExpect(jsonPath("$.birthday").value("2000-05-05"))
+                .andExpect(jsonPath("$.friends").isEmpty());
+
     }
 
     @Test
-    public void addUserFailLoginShouldGiveException() {
+    public void addUserFailLoginShouldGiveException() throws Exception {
         user.setLogin("user user");
 
-        final NestedServletException exception = assertThrows(
-                NestedServletException.class,
-                () -> mockMvc.perform(post("/users")
-                                .content(objectMapper.writeValueAsString(user))
-                                .contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is5xxServerError()));
-
-        assertEquals("login - В логине не может быть пробелов", Objects.requireNonNull(exception.getMessage()).substring(108).trim());
+        mockMvc.perform(post("/users")
+                        .content(objectMapper.writeValueAsString(user))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json("{\"error\":\"login - В логине не может быть пробелов\"}"));
     }
 
     @Test
-    public void addUserFailEmailShouldGiveException() {
+    public void addUserFailEmailShouldGiveException() throws Exception {
         user.setEmail("mail.ru");
 
-        final NestedServletException exception = assertThrows(
-                NestedServletException.class,
-                () -> mockMvc.perform(post("/users")
-                                .content(objectMapper.writeValueAsString(user))
-                                .contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is5xxServerError()));
-
-        assertEquals("email - Почта не валидна", Objects.requireNonNull(exception.getMessage()).substring(108).trim());
+        mockMvc.perform(post("/users")
+                        .content(objectMapper.writeValueAsString(user))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json("{\"error\":\"email - Почта не валидна\"}"));
     }
 
     @Test
-    public void addUserEmptyEmailShouldGiveException() {
+    public void addUserEmptyEmailShouldGiveException() throws Exception {
         user.setEmail("");
 
-        final NestedServletException exception = assertThrows(
-                NestedServletException.class,
-                () -> mockMvc.perform(post("/users")
-                                .content(objectMapper.writeValueAsString(user))
-                                .contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is5xxServerError()));
-
-        assertEquals("email - Почта не валидна", Objects.requireNonNull(exception.getMessage()).substring(108).trim());
+        mockMvc.perform(post("/users")
+                        .content(objectMapper.writeValueAsString(user))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json("{\"error\":\"email - Почта не валидна\"}"));
     }
 
     @Test
-    public void addUserFailBirthdayShouldGiveException() {
+    public void addUserFailBirthdayShouldGiveException() throws Exception {
         user.setBirthday(LocalDate.of(2025, 12, 23));
 
-        final NestedServletException exception = assertThrows(
-                NestedServletException.class,
-                () -> mockMvc.perform(post("/users")
-                                .content(objectMapper.writeValueAsString(user))
-                                .contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is5xxServerError()));
-
-        assertEquals("birthday - Дата рождения не может быть в будущем", Objects.requireNonNull(exception.getMessage()).substring(108).trim());
+        mockMvc.perform(post("/users")
+                        .content(objectMapper.writeValueAsString(user))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json("{\"error\":\"birthday - Дата рождения не может быть в будущем\"}"));
     }
 
     @Test
@@ -124,7 +115,8 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.email").value("mail@mail.ru"))
                 .andExpect(jsonPath("$.login").value("user"))
                 .andExpect(jsonPath("$.name").value("user"))
-                .andExpect(jsonPath("$.birthday").value("2000-05-05"));
+                .andExpect(jsonPath("$.birthday").value("2000-05-05"))
+                .andExpect(jsonPath("$.friends").isEmpty());
     }
 
     @Test
@@ -145,19 +137,17 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.email").value("mail@mail.ru"))
                 .andExpect(jsonPath("$.login").value("VASKA"))
                 .andExpect(jsonPath("$.name").value("UUUSSSER"))
-                .andExpect(jsonPath("$.birthday").value("2000-05-05"));
+                .andExpect(jsonPath("$.birthday").value("2000-05-05"))
+                .andExpect(jsonPath("$.friends").isEmpty());
     }
 
     @Test
-    public void updateFailUserShouldGiveException() {
-        final NestedServletException exception = assertThrows(
-                NestedServletException.class,
-                () -> mockMvc.perform(put("/users")
-                                .content(objectMapper.writeValueAsString(user))
-                                .contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is5xxServerError()));
-
-        assertEquals("Пользователь не найден", Objects.requireNonNull(exception.getMessage()).substring(108).trim());
+    public void updateFailUserShouldGiveException() throws Exception {
+        mockMvc.perform(put("/users")
+                        .content(objectMapper.writeValueAsString(user))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().json("{\"error\":\"Пользователь не найден\"}"));
     }
 
     @Test
@@ -167,6 +157,7 @@ class UserControllerTest {
         userSecond.setLogin("second");
         userSecond.setName("second");
         userSecond.setBirthday(LocalDate.of(2005, 1, 2));
+        userSecond.setFriends(new HashSet<>());
 
         mockMvc.perform(post("/users")
                         .content(objectMapper.writeValueAsString(user))
@@ -185,5 +176,4 @@ class UserControllerTest {
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().json(objectMapper.writeValueAsString(List.of(user, userSecond))));
     }
-
 }
