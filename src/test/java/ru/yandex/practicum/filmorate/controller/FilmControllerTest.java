@@ -9,15 +9,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -31,8 +28,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class FilmControllerTest {
     private final Film film = new Film();
+
     @Autowired
     private MockMvc mockMvc;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -42,6 +41,8 @@ class FilmControllerTest {
         film.setDescription("Indian");
         film.setReleaseDate(LocalDate.of(2022, 3, 24));
         film.setDuration(187);
+        film.setRate(0);
+        film.setLikes(new HashSet<>());
     }
 
     @Test
@@ -58,77 +59,62 @@ class FilmControllerTest {
     }
 
     @Test
-    public void addFilmFailNameShouldGiveException() {
+    public void addFilmFailNameShouldGiveException() throws Exception {
         film.setName("");
 
-        final NestedServletException exception = assertThrows(
-                NestedServletException.class,
-                () -> mockMvc.perform(post("/films")
-                                .content(objectMapper.writeValueAsString(film))
-                                .contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is5xxServerError()));
-
-        assertEquals("name - Название фильма не может быть пустым", Objects.requireNonNull(exception.getMessage()).substring(108));
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsString(film))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json("{\"error\":\"name - Название фильма не может быть пустым\"}"));
     }
 
     @Test
-    public void addFilmFailDescriptionShouldGiveException() {
+    public void addFilmFailDescriptionShouldGiveException() throws Exception {
         film.setDescription("Британская Индия. Рама — преданный полицейский на службе у колониального правительства, способный расправиться с толпой в одиночку, " +
                 "и местные считают его предателем. Бхим — парень из племени гондов, который вынужден отправиться в Дели на поиски похищенной губернатором маленькой соплеменницы. " +
                 "Узнав об этом, губернатор объявляет награду за его поимку, и, чтобы продвинуться по службе, Рама берётся за это задание. " +
                 "Спасая упавшего в реку мальчика, Рама и Бхим становятся друзьями. Они не знают ни настоящих личностей, ни скрытых мотивов друг друга, " +
                 "но это знакомство положит начало большим переменам.");
 
-        final NestedServletException exception = assertThrows(
-                NestedServletException.class,
-                () -> mockMvc.perform(post("/films")
-                                .content(objectMapper.writeValueAsString(film))
-                                .contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is5xxServerError()));
-
-        assertEquals("description - Максимальное количество символов - 200", Objects.requireNonNull(exception.getMessage()).substring(108));
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsString(film))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json("{\"error\":\"description - Максимальное количество символов - 200\"}"));
     }
 
     @Test
-    public void addFilmFailReleaseDateShouldGiveException() {
+    public void addFilmFailReleaseDateShouldGiveException() throws Exception {
         film.setReleaseDate(LocalDate.of(1895, 12, 27));
 
-        final NestedServletException exception = assertThrows(
-                NestedServletException.class,
-                () -> mockMvc.perform(post("/films")
-                                .content(objectMapper.writeValueAsString(film))
-                                .contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is5xxServerError()));
-
-        assertEquals("releaseDate - Фильм должен быть позже 1895-12-28", Objects.requireNonNull(exception.getMessage()).substring(108));
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsString(film))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json("{\"error\":\"releaseDate - Фильм должен быть позже 1895-12-28\"}"));
     }
 
     @Test
-    public void addFilmFailDurationShouldGiveException() {
+    public void addFilmFailDurationShouldGiveException() throws Exception {
         film.setDuration(-100);
 
-        final NestedServletException exception = assertThrows(
-                NestedServletException.class,
-                () -> mockMvc.perform(post("/films")
-                                .content(objectMapper.writeValueAsString(film))
-                                .contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is5xxServerError()));
-
-        assertEquals("duration - Продолжительность фильма должна быть положительной", Objects.requireNonNull(exception.getMessage()).substring(108));
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsString(film))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json("{\"error\":\"duration - Продолжительность фильма должна быть положительной\"}"));
     }
 
     @Test
-    public void addFilmZeroDurationShouldGiveException() {
+    public void addFilmZeroDurationShouldGiveException() throws Exception {
         film.setDuration(0);
 
-        final NestedServletException exception = assertThrows(
-                NestedServletException.class,
-                () -> mockMvc.perform(post("/films")
-                                .content(objectMapper.writeValueAsString(film))
-                                .contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is5xxServerError()));
-
-        assertEquals("duration - Продолжительность фильма должна быть положительной", Objects.requireNonNull(exception.getMessage()).substring(108));
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsString(film))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json("{\"error\":\"duration - Продолжительность фильма должна быть положительной\"}"));
     }
 
     @Test
@@ -152,17 +138,14 @@ class FilmControllerTest {
     }
 
     @Test
-    public void updateFailFilmShouldGiveException() {
+    public void updateFailFilmShouldGiveException() throws Exception {
         film.setName("WWW");
         film.setDescription("Super Film");
-        final NestedServletException exception = assertThrows(
-                NestedServletException.class,
-                () -> mockMvc.perform(put("/films")
+        mockMvc.perform(put("/films")
                         .content(objectMapper.writeValueAsString(film))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().is5xxServerError()));
-
-        assertEquals("Фильм не найден", Objects.requireNonNull(exception.getMessage()).substring(108));
+                .andExpect(status().isNotFound())
+                .andExpect(content().json("{\"error\":\"Фильм не найден\"}"));
     }
 
     @Test
@@ -172,12 +155,16 @@ class FilmControllerTest {
         filmFirst.setDescription("Comedy film");
         filmFirst.setReleaseDate(LocalDate.of(2015, 12, 1));
         filmFirst.setDuration(143);
+        filmFirst.setRate(0);
+        filmFirst.setLikes(new HashSet<>());
 
         Film filmSecond = new Film();
         filmSecond.setName("Second");
         filmSecond.setDescription("Action film");
         filmSecond.setReleaseDate(LocalDate.of(2020, 3, 28));
         filmSecond.setDuration(120);
+        filmSecond.setRate(0);
+        filmSecond.setLikes(new HashSet<>());
 
         mockMvc.perform(post("/films")
                 .content(objectMapper.writeValueAsString(filmFirst))
