@@ -41,7 +41,6 @@ class FilmControllerTest {
         film.setDescription("Indian");
         film.setReleaseDate(LocalDate.of(2022, 3, 24));
         film.setDuration(187);
-        film.setRate(0);
         film.setLikes(new HashSet<>());
     }
 
@@ -155,7 +154,6 @@ class FilmControllerTest {
         filmFirst.setDescription("Comedy film");
         filmFirst.setReleaseDate(LocalDate.of(2015, 12, 1));
         filmFirst.setDuration(143);
-        filmFirst.setRate(0);
         filmFirst.setLikes(new HashSet<>());
 
         Film filmSecond = new Film();
@@ -163,7 +161,6 @@ class FilmControllerTest {
         filmSecond.setDescription("Action film");
         filmSecond.setReleaseDate(LocalDate.of(2020, 3, 28));
         filmSecond.setDuration(120);
-        filmSecond.setRate(0);
         filmSecond.setLikes(new HashSet<>());
 
         mockMvc.perform(post("/films")

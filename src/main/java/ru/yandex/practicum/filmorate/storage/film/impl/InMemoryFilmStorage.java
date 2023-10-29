@@ -28,7 +28,6 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film create(Film film) {
         film.setId(getNextId());
         film.setLikes(new HashSet<>());
-        updateFilmRate(film);
 
         films.put(film.getId(), film);
         log.info("Добавлен новый фильм");
@@ -39,7 +38,6 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Film update(Film film) {
         if (films.containsKey(film.getId())) {
             film.setLikes(films.get(film.getId()).getLikes());
-            updateFilmRate(film);
 
             films.put(film.getId(), film);
             log.info("Данные фильма изменены");
@@ -59,9 +57,5 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     private Integer getNextId() {
         return ++id;
-    }
-
-    private void updateFilmRate(Film film) {
-        film.setRate(film.getLikes().size());
     }
 }
