@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -53,6 +54,24 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new EntityNotFoundException("Фильм не найден");
         }
         return films.get(id);
+    }
+
+    @Override
+    public void addLike(int filmId, int userId) {
+        films.get(filmId).getLikes().add(userId);
+    }
+
+    @Override
+    public void removeLike(int filmId, int userId) {
+        films.get(filmId).getLikes().remove(userId);
+    }
+
+    @Override
+    public List<Film> getPopularFilm(int count) {
+        return findAll().stream()
+                .sorted((o1, o2) -> o2.getLikes().size() - o1.getLikes().size())
+                .limit(count)
+                .collect(Collectors.toList());
     }
 
     private Integer getNextId() {

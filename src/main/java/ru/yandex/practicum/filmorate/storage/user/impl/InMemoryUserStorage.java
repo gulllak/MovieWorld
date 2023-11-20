@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -51,6 +53,44 @@ public class InMemoryUserStorage implements UserStorage {
             throw new EntityNotFoundException("Пользователь не найден");
         }
         return users.get(id);
+    }
+
+    @Override
+    public List<User> getFriends(int id) {
+        List<User> friends = new ArrayList<>();
+        for (int friendId : getUserById(id).getFriends()) {
+            friends.add(getUserById(friendId));
+        }
+        return friends;
+    }
+
+    @Override
+    public void addFriend(int id, int friendId) {
+        getUserById(id).getFriends().add(friendId);
+        getUserById(friendId).getFriends().add(id);
+    }
+
+    @Override
+    public void removeFriend(int id, int friendId) {
+        getUserById(id).getFriends().remove(friendId);
+        getUserById(friendId).getFriends().remove(id);
+    }
+
+    @Override
+    public List<User> getCommonFriends(int id, int otherId) {
+        Set<Integer> user = getUserById(id).getFriends();
+        Set<Integer> otherUser = getUserById(otherId).getFriends();
+
+        Set<Integer> commonFriendsId = user.stream()
+                .filter(otherUser::contains)
+                .collect(Collectors.toSet());
+
+        List<User> commonFriends = new ArrayList<>();
+        for (Integer userId : commonFriendsId) {
+            commonFriends.add(getUserById(userId));
+        }
+
+        return commonFriends;
     }
 
     private Integer getNextId() {
