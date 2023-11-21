@@ -220,7 +220,7 @@ class FilmStorageTest {
         film.setGenres(List.of(genre1Full));
         film1.setGenres(List.of(genre2Full));
 
-        List<Film> getPopularFilm = filmStorage.getPopularFilm(2);
+        List<Film> getPopularFilm = filmStorage.getPopularFilms(2);
 
         Assertions.assertEquals(List.of(film, film1), getPopularFilm);
     }

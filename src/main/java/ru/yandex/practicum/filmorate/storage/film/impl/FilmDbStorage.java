@@ -2,37 +2,45 @@ package ru.yandex.practicum.filmorate.storage.film.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
-import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
-    private final MpaStorage mpaStorage;
+
     private final GenreStorage genreStorage;
 
     private final LikeStorage likeStorage;
 
     @Override
     public List<Film> findAll() {
-        String sqlQuery = "SELECT * FROM films";
-
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
+                "LEFT JOIN genres g ON fg.genre_id = g.id " +
+                "GROUP BY f.id, f.name, f.description, f.releaseDate, f.duration, m.id, m.name, g.id, g.name";
         return jdbcTemplate.query(sqlQuery, this::createFilm);
     }
 
@@ -66,7 +74,13 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilmById(int id) {
-        String sqlQuery = "SELECT * FROM films WHERE id = ?";
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
+                "LEFT JOIN genres g ON fg.genre_id = g.id " +
+                "WHERE f.id = ? " +
+                "GROUP BY f.id, f.name, f.description, f.releaseDate, f.duration, m.id, m.name, g.id, g.name";
 
         List<Film> films = jdbcTemplate.query(sqlQuery, this::createFilm, id);
         if (films.size() != 1) {
@@ -88,24 +102,50 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularFilm(int count) {
+    public List<Film> getPopularFilms(int count) {
         List<Film> films = new ArrayList<>();
 
-        for (int id : likeStorage.getPopularFilm(count)) {
+        for (int id : likeStorage.getPopularFilms(count)) {
             films.add(getFilmById(id));
         }
         return films;
     }
 
-    private Film createFilm(ResultSet rs, int rowNum) throws SQLException {
-        return Film.builder()
-                .id(rs.getInt("id"))
-                .name(rs.getString("name"))
-                .description(rs.getString("description"))
-                .releaseDate(rs.getDate("releasedate").toLocalDate())
-                .duration(rs.getInt("duration"))
-                .mpa(mpaStorage.getById(rs.getInt("mpa_id")))
-                .genres(genreStorage.getGenreListByFilmId(rs.getInt("id")))
-                .build();
+    private List<Film> createFilm(ResultSet rs) throws SQLException {
+        ResultSetExtractor<List<Film>> resultSetExtractor = rs1 -> {
+            Map<Integer, Film> list = new HashMap<>();
+            while (rs1.next()) {
+                if (list.containsKey(rs1.getInt("id"))) {
+                    list.get(rs1.getInt("id")).getGenres().add(Genre.builder()
+                            .id(rs1.getInt("genre_id"))
+                            .name(rs1.getString("genre_name"))
+                            .build());
+                } else {
+                    Film film = Film.builder()
+                            .id(rs1.getInt("id"))
+                            .name(rs1.getString("name"))
+                            .description(rs1.getString("description"))
+                            .releaseDate(rs1.getDate("releasedate").toLocalDate())
+                            .duration(rs1.getInt("duration"))
+                            .mpa(Mpa.builder()
+                                    .id(rs1.getInt("mpa_id"))
+                                    .name(rs1.getString("mpa_name"))
+                                    .build())
+                            .genres(new ArrayList<>())
+                            .build();
+
+                    if (rs1.getInt("genre_id") != 0) {
+                        film.getGenres().add(Genre.builder()
+                                .id(rs1.getInt("genre_id"))
+                                .name(rs1.getString("genre_name"))
+                                .build());
+                    }
+
+                    list.put(film.getId(), film);
+                }
+            }
+            return new ArrayList<>(list.values());
+        };
+        return resultSetExtractor.extractData(rs);
     }
 }

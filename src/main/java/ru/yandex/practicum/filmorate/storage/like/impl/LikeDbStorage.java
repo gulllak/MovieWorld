@@ -35,7 +35,7 @@ public class LikeDbStorage implements LikeStorage {
     }
 
     @Override
-    public List<Integer> getPopularFilm(int count) {
+    public List<Integer> getPopularFilms(int count) {
         String sqlQuery = "SELECT f.ID, COUNT(l.user_id) AS col " +
                 "FROM films AS f LEFT JOIN likes AS l ON f.id = l.film_id GROUP BY f.id ORDER BY col DESC LIMIT ?";
 

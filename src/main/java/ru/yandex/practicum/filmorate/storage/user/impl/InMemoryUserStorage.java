@@ -57,11 +57,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public List<User> getFriends(int id) {
-        List<User> friends = new ArrayList<>();
-        for (int friendId : getUserById(id).getFriends()) {
-            friends.add(getUserById(friendId));
-        }
-        return friends;
+        return getUserById(id).getFriends().stream().map(this::getUserById).collect(Collectors.toList());
     }
 
     @Override
