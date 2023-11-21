@@ -36,9 +36,9 @@ class FilmControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    Mpa mpa = Mpa.builder().id(1).name("G").build();
+    Mpa mpa = Mpa.builder().id(1L).name("G").build();
     private final Film film = Film.builder()
-            .id(1)
+            .id(1L)
             .name("RRR")
             .description("Indian")
             .releaseDate(LocalDate.of(2022, 3, 24))
@@ -125,7 +125,7 @@ class FilmControllerTest {
                 .content(objectMapper.writeValueAsString(film))
                 .contentType(MediaType.APPLICATION_JSON));
 
-        film.setId(1);
+        film.setId(1L);
         film.setName("WWW");
         film.setDescription("Super Film");
         mockMvc.perform(put("/films")
@@ -153,7 +153,7 @@ class FilmControllerTest {
     @Test
     public void getAllFilmShouldGive2() throws Exception {
         Film filmFirst = Film.builder()
-                .id(1)
+                .id(1L)
                 .name("First")
                 .description("Comedy film")
                 .releaseDate(LocalDate.of(2015, 12, 1))
@@ -163,7 +163,7 @@ class FilmControllerTest {
 
 
         Film filmSecond = Film.builder()
-                .id(2)
+                .id(2L)
                 .name("Second")
                 .description("Action film")
                 .releaseDate(LocalDate.of(2020, 3, 28))

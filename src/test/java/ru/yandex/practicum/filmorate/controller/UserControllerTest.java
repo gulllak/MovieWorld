@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class UserControllerTest {
     private final User user = User.builder()
-            .id(1)
+            .id(1L)
             .email("mail@mail.ru")
             .login("user")
             .name("Vasya")
@@ -118,7 +118,7 @@ class UserControllerTest {
                 .content(objectMapper.writeValueAsString(user))
                 .contentType(MediaType.APPLICATION_JSON));
 
-        user.setId(1);
+        user.setId(1L);
         user.setName("UUUSSSER");
         user.setLogin("VASKA");
 
@@ -145,7 +145,7 @@ class UserControllerTest {
     @Test
     public void getAllUserShouldGive2() throws Exception {
         User userSecond = User.builder()
-                .id(2)
+                .id(2L)
                 .email("asd@mail.ru")
                 .login("second")
                 .name("second")
@@ -162,8 +162,8 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        user.setId(1);
-        userSecond.setId(2);
+        user.setId(1L);
+        userSecond.setId(2L);
 
         mockMvc.perform(get("/users"))
                 .andExpect(status().is2xxSuccessful())
