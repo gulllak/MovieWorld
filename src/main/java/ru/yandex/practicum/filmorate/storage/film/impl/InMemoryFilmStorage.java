@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
-    private Integer id = 0;
+    private Long id = 0L;
 
-    private final Map<Integer, Film> films = new HashMap<>();
+    private final Map<Long, Film> films = new HashMap<>();
 
     @Override
     public List<Film> findAll() {
@@ -49,7 +49,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilmById(int id) {
+    public Film getFilmById(Long id) {
         if (!films.containsKey(id)) {
             throw new EntityNotFoundException("Фильм не найден");
         }
@@ -57,12 +57,12 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public void addLike(int filmId, int userId) {
+    public void addLike(Long filmId, Long userId) {
         films.get(filmId).getLikes().add(userId);
     }
 
     @Override
-    public void removeLike(int filmId, int userId) {
+    public void removeLike(Long filmId, Long userId) {
         films.get(filmId).getLikes().remove(userId);
     }
 
@@ -74,7 +74,7 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .collect(Collectors.toList());
     }
 
-    private Integer getNextId() {
+    private Long getNextId() {
         return ++id;
     }
 }

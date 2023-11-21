@@ -31,7 +31,7 @@ class FilmStorageTest {
     private final FilmDbStorage filmStorage;
 
     User user = User.builder()
-            .id(1)
+            .id(1L)
             .email("user@email.ru")
             .name("vanya123")
             .login("Ivan Petrov")
@@ -39,7 +39,7 @@ class FilmStorageTest {
             .build();
 
     User user1 = User.builder()
-            .id(2)
+            .id(2L)
             .email("user1@email.ru")
             .name("Petya")
             .login("Petyyya")
@@ -47,28 +47,28 @@ class FilmStorageTest {
             .build();
 
     User user2 = User.builder()
-            .id(3)
+            .id(3L)
             .email("user2@email.ru")
             .name("Sasha Petrov")
             .login("Sasha")
             .birthday(LocalDate.of(1970, 1, 1))
             .build();
 
-    Mpa mpa1 = Mpa.builder().id(4).build();
-    Mpa mpa1Full = Mpa.builder().id(4).name("R").build();
-    Mpa mpa2 = Mpa.builder().id(3).build();
-    Mpa mpa2Full = Mpa.builder().id(3).name("PG-13").build();
+    Mpa mpa1 = Mpa.builder().id(4L).build();
+    Mpa mpa1Full = Mpa.builder().id(4L).name("R").build();
+    Mpa mpa2 = Mpa.builder().id(3L).build();
+    Mpa mpa2Full = Mpa.builder().id(3L).name("PG-13").build();
 
 
 
-    Genre genre1 = Genre.builder().id(2).build();
-    Genre genre1Full = Genre.builder().id(2).name("Драма").build();
-    Genre genre2 = Genre.builder().id(1).build();
-    Genre genre2Full = Genre.builder().id(1).name("Комедия").build();
+    Genre genre1 = Genre.builder().id(2L).build();
+    Genre genre1Full = Genre.builder().id(2L).name("Драма").build();
+    Genre genre2 = Genre.builder().id(1L).build();
+    Genre genre2Full = Genre.builder().id(1L).name("Комедия").build();
 
 
     Film film = Film.builder()
-            .id(1)
+            .id(1L)
             .name("Опенгеймер")
             .description("История жизни американского физика-теоретика Роберта Оппенгеймера, " +
                     "который во времена Второй мировой войны руководил Манхэттенским проектом — " +
@@ -80,7 +80,7 @@ class FilmStorageTest {
             .build();
 
     Film film1 = Film.builder()
-            .id(2)
+            .id(2L)
             .name("Форрест Гамп")
             .description("С самого малолетства парень страдал от заболевания ног, соседские мальчишки дразнили его, " +
                     "но в один прекрасный день Форрест открыл в себе невероятные способности к бегу. ")
@@ -95,7 +95,7 @@ class FilmStorageTest {
         filmStorage.create(film);
         film.setMpa(mpa1Full);
         film.setGenres(List.of(genre1Full));
-        Film getFilm = filmStorage.getFilmById(1);
+        Film getFilm = filmStorage.getFilmById(1L);
 
         assertThat(getFilm)
                 .isNotNull()
@@ -110,7 +110,7 @@ class FilmStorageTest {
 
         film.setMpa(mpa1Full);
         film.setGenres(List.of(genre2Full, genre1Full));
-        Film getFilm = filmStorage.getFilmById(1);
+        Film getFilm = filmStorage.getFilmById(1L);
 
         assertThat(getFilm)
                 .isNotNull()
@@ -139,14 +139,14 @@ class FilmStorageTest {
         film.setMpa(mpa1Full);
         film.setGenres(List.of(genre1Full));
 
-        Film getFilm = filmStorage.getFilmById(1);
+        Film getFilm = filmStorage.getFilmById(1L);
         Assertions.assertEquals(film, getFilm);
     }
 
     @Test
     public void getFilmByInvalidId() {
         EntityNotFoundException entityNotFoundException = Assertions.assertThrows(
-                EntityNotFoundException.class, () -> filmStorage.getFilmById(1));
+                EntityNotFoundException.class, () -> filmStorage.getFilmById(1L));
         Assertions.assertEquals("Фильм c id 1 не существует", entityNotFoundException.getMessage());
     }
 
@@ -157,7 +157,7 @@ class FilmStorageTest {
         film.setName("Обновленный");
 
         filmStorage.update(film);
-        Film getFilm = filmStorage.getFilmById(1);
+        Film getFilm = filmStorage.getFilmById(1L);
         film.setMpa(mpa1Full);
         film.setGenres(List.of(genre1Full));
 
@@ -168,10 +168,10 @@ class FilmStorageTest {
     public void addLike() {
         filmStorage.create(film);
         userStorage.create(user);
-        filmStorage.addLike(1, 1);
+        filmStorage.addLike(1L, 1L);
 
         EntityAlreadyExistException entityAlreadyExistException = Assertions.assertThrows(
-                EntityAlreadyExistException.class, () -> filmStorage.addLike(1, 1));
+                EntityAlreadyExistException.class, () -> filmStorage.addLike(1L, 1L));
         Assertions.assertEquals("Этот пользователь уже ставил лайк", entityAlreadyExistException.getMessage());
     }
 
@@ -180,7 +180,7 @@ class FilmStorageTest {
         userStorage.create(user);
 
         EntityNotFoundException entityNotFoundException = Assertions.assertThrows(
-                EntityNotFoundException.class, () -> filmStorage.addLike(1, 1));
+                EntityNotFoundException.class, () -> filmStorage.addLike(1L, 1L));
         Assertions.assertEquals("Фильм c id 1 не существует", entityNotFoundException.getMessage());
     }
 
@@ -188,16 +188,16 @@ class FilmStorageTest {
     public void removeLike() {
         filmStorage.create(film);
         userStorage.create(user);
-        filmStorage.addLike(1, 1);
+        filmStorage.addLike(1L, 1L);
 
         EntityAlreadyExistException entityAlreadyExistException = Assertions.assertThrows(
-                EntityAlreadyExistException.class, () -> filmStorage.addLike(1, 1));
+                EntityAlreadyExistException.class, () -> filmStorage.addLike(1L, 1L));
         Assertions.assertEquals("Этот пользователь уже ставил лайк", entityAlreadyExistException.getMessage());
 
-        filmStorage.removeLike(1, 1);
+        filmStorage.removeLike(1L, 1L);
 
         entityAlreadyExistException = Assertions.assertThrows(
-                EntityAlreadyExistException.class, () -> filmStorage.removeLike(1, 1));
+                EntityAlreadyExistException.class, () -> filmStorage.removeLike(1L, 1L));
         Assertions.assertEquals("Этот пользователь не ставил лайк", entityAlreadyExistException.getMessage());
     }
 
@@ -209,10 +209,10 @@ class FilmStorageTest {
         userStorage.create(user1);
         userStorage.create(user2);
 
-        filmStorage.addLike(1, 1);
-        filmStorage.addLike(2, 1);
-        filmStorage.addLike(1, 2);
-        filmStorage.addLike(1, 3);
+        filmStorage.addLike(1L, 1L);
+        filmStorage.addLike(2L, 1L);
+        filmStorage.addLike(1L, 2L);
+        filmStorage.addLike(1L, 3L);
 
         film.setMpa(mpa1Full);
         film1.setMpa(mpa2Full);

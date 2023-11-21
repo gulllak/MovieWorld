@@ -24,7 +24,7 @@ public class GenreDbStorage implements GenreStorage {
     }
 
     @Override
-    public Genre getById(int id) {
+    public Genre getById(Long id) {
         String sql = "SELECT * FROM genres WHERE id = ?";
         List<Genre> genres = jdbcTemplate.query(sql, this::createGenre, id);
         if (genres.size() != 1) {
@@ -34,14 +34,14 @@ public class GenreDbStorage implements GenreStorage {
     }
 
     @Override
-    public List<Genre> getGenreListByFilmId(int filmId) {
+    public List<Genre> getGenreListByFilmId(Long filmId) {
         String sqlQuery = "SELECT * FROM genres WHERE id IN (SELECT genre_id FROM film_genres WHERE film_id = ?)";
 
         return jdbcTemplate.query(sqlQuery, this::createGenre, filmId);
     }
 
     @Override
-    public void setFilmsGenres(int filmId, List<Genre> genres) {
+    public void setFilmsGenres(Long filmId, List<Genre> genres) {
         String sqlQueryCleanFilmsGenres = "DELETE FROM film_genres WHERE film_id = ?";
         String sqlQuerySetGenres = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
         jdbcTemplate.update(sqlQueryCleanFilmsGenres, filmId);
@@ -56,7 +56,7 @@ public class GenreDbStorage implements GenreStorage {
 
     private Genre createGenre(ResultSet rs, int rowNum) throws SQLException {
         return Genre.builder()
-                .id(rs.getInt("id"))
+                .id(rs.getLong("id"))
                 .name(rs.getString("name"))
                 .build();
     }

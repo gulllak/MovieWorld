@@ -14,7 +14,7 @@ import java.util.Set;
 @Data
 @Builder
 public class User {
-    private int id;
+    private Long id;
     @Email(message = "Почта не валидна", regexp = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$")
     private String email;
     private String name;
@@ -24,5 +24,5 @@ public class User {
     @PastOrPresent(message = "Дата рождения не может быть в будущем")
     private LocalDate birthday;
     @JsonIgnore
-    private Set<Integer> friends;
+    private Set<Long> friends;
 }

@@ -7,9 +7,9 @@ import java.util.List;
 public interface GenreStorage {
     List<Genre> findAll();
 
-    Genre getById(int id);
+    Genre getById(Long id);
 
-    List<Genre> getGenreListByFilmId(int filmId);
+    List<Genre> getGenreListByFilmId(Long filmId);
 
-    void setFilmsGenres(int filmId, List<Genre> genres);
+    void setFilmsGenres(Long filmId, List<Genre> genres);
 }

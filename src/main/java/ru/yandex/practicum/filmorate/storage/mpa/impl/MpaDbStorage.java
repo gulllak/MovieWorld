@@ -23,7 +23,7 @@ public class MpaDbStorage implements MpaStorage {
     }
 
     @Override
-    public Mpa getById(int id) {
+    public Mpa getById(Long id) {
         String sql = "SELECT * FROM mpa WHERE id = ?";
         List<Mpa> mpas = jdbcTemplate.query(sql, MpaDbStorage::createMpa, id);
         if (mpas.size() != 1) {
@@ -34,7 +34,7 @@ public class MpaDbStorage implements MpaStorage {
 
     static Mpa createMpa(ResultSet rs, int rowNum) throws SQLException {
         return Mpa.builder()
-                .id(rs.getInt("id"))
+                .id(rs.getLong("id"))
                 .name(rs.getString("name"))
                 .build();
     }

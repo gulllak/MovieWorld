@@ -17,7 +17,7 @@ public class LikeDbStorage implements LikeStorage {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public void addLike(int filmId, int userId) {
+    public void addLike(Long filmId, Long userId) {
         if (likeExists(filmId, userId)) {
             throw new EntityAlreadyExistException("Этот пользователь уже ставил лайк");
         }
@@ -26,7 +26,7 @@ public class LikeDbStorage implements LikeStorage {
     }
 
     @Override
-    public void removeLike(int filmId, int userId) {
+    public void removeLike(Long filmId, Long userId) {
         String sqlQuery = "DELETE FROM likes WHERE user_id = ? AND film_id = ?";
         if (!likeExists(filmId, userId)) {
             throw new EntityAlreadyExistException("Этот пользователь не ставил лайк");
@@ -35,20 +35,20 @@ public class LikeDbStorage implements LikeStorage {
     }
 
     @Override
-    public List<Integer> getPopularFilms(int count) {
+    public List<Long> getPopularFilms(int count) {
         String sqlQuery = "SELECT f.ID, COUNT(l.user_id) AS col " +
                 "FROM films AS f LEFT JOIN likes AS l ON f.id = l.film_id GROUP BY f.id ORDER BY col DESC LIMIT ?";
 
         return jdbcTemplate.query(sqlQuery,this::getId, count);
     }
 
-    private boolean likeExists(int filmId, int userId) {
+    private boolean likeExists(Long filmId, Long userId) {
         String sqlQuery = "SELECT * FROM likes WHERE user_id = ? AND film_id = ?";
         SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(sqlQuery, userId, filmId);
         return sqlRowSet.next();
     }
 
-    private Integer getId(ResultSet rs, int rowNum) throws SQLException {
-        return rs.getInt("id");
+    private Long getId(ResultSet rs, int rowNum) throws SQLException {
+        return rs.getLong("id");
     }
 }

@@ -15,7 +15,7 @@ import java.util.Set;
 @Data
 @Builder
 public class Film {
-    private int id;
+    private Long id;
     @NotBlank(message = "Название фильма не может быть пустым")
     private String name;
     @Size(max = 200, message = "Максимальное количество символов - 200")
@@ -26,7 +26,7 @@ public class Film {
     private int duration;
     private Mpa mpa;
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private Set<Integer> likes;
+    private Set<Long> likes;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<Genre> genres;
 }

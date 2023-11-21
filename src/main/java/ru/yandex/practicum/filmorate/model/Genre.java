@@ -10,7 +10,7 @@ import javax.validation.constraints.NotBlank;
 @Builder
 @RequiredArgsConstructor
 public class Genre {
-    private final int id;
+    private final Long id;
     @NotBlank
     private final String name;
 }

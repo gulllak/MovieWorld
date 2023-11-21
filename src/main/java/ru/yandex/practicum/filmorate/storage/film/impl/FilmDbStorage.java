@@ -54,12 +54,12 @@ public class FilmDbStorage implements FilmStorage {
             stmt.setString(1, film.getName());
             stmt.setString(2, film.getDescription());
             stmt.setDate(3, Date.valueOf(film.getReleaseDate()));
-            stmt.setInt(4, film.getDuration());
-            stmt.setInt(5, film.getMpa().getId());
+            stmt.setLong(4, film.getDuration());
+            stmt.setLong(5, film.getMpa().getId());
             return stmt;
         }, keyHolder);
 
-        int filmId = Objects.requireNonNull(keyHolder.getKey()).intValue();
+        Long filmId = Objects.requireNonNull(keyHolder.getKey()).longValue();
         genreStorage.setFilmsGenres(filmId, film.getGenres());
         return getFilmById(filmId);
     }
@@ -73,7 +73,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilmById(int id) {
+    public Film getFilmById(Long id) {
         String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name " +
                 "FROM films f " +
                 "LEFT JOIN mpa m ON f.mpa_id = m.id " +
@@ -90,14 +90,14 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public void addLike(int filmId, int userId) {
+    public void addLike(Long filmId, Long userId) {
         getFilmById(filmId);
 
         likeStorage.addLike(filmId, userId);
     }
 
     @Override
-    public void removeLike(int filmId, int userId) {
+    public void removeLike(Long filmId, Long userId) {
         likeStorage.removeLike(filmId, userId);
     }
 
@@ -105,7 +105,7 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> getPopularFilms(int count) {
         List<Film> films = new ArrayList<>();
 
-        for (int id : likeStorage.getPopularFilms(count)) {
+        for (Long id : likeStorage.getPopularFilms(count)) {
             films.add(getFilmById(id));
         }
         return films;
@@ -113,22 +113,22 @@ public class FilmDbStorage implements FilmStorage {
 
     private List<Film> createFilm(ResultSet rs) throws SQLException {
         ResultSetExtractor<List<Film>> resultSetExtractor = rs1 -> {
-            Map<Integer, Film> list = new HashMap<>();
+            Map<Long, Film> list = new HashMap<>();
             while (rs1.next()) {
-                if (list.containsKey(rs1.getInt("id"))) {
-                    list.get(rs1.getInt("id")).getGenres().add(Genre.builder()
-                            .id(rs1.getInt("genre_id"))
+                if (list.containsKey(rs1.getLong("id"))) {
+                    list.get(rs1.getLong("id")).getGenres().add(Genre.builder()
+                            .id(rs1.getLong("genre_id"))
                             .name(rs1.getString("genre_name"))
                             .build());
                 } else {
                     Film film = Film.builder()
-                            .id(rs1.getInt("id"))
+                            .id(rs1.getLong("id"))
                             .name(rs1.getString("name"))
                             .description(rs1.getString("description"))
                             .releaseDate(rs1.getDate("releasedate").toLocalDate())
                             .duration(rs1.getInt("duration"))
                             .mpa(Mpa.builder()
-                                    .id(rs1.getInt("mpa_id"))
+                                    .id(rs1.getLong("mpa_id"))
                                     .name(rs1.getString("mpa_name"))
                                     .build())
                             .genres(new ArrayList<>())
@@ -136,7 +136,7 @@ public class FilmDbStorage implements FilmStorage {
 
                     if (rs1.getInt("genre_id") != 0) {
                         film.getGenres().add(Genre.builder()
-                                .id(rs1.getInt("genre_id"))
+                                .id(rs1.getLong("genre_id"))
                                 .name(rs1.getString("genre_name"))
                                 .build());
                     }

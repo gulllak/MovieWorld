@@ -26,7 +26,7 @@ class UserStorageTest {
     private final UserDbStorage userStorage;
 
     User user = User.builder()
-            .id(1)
+            .id(1L)
             .email("user@email.ru")
             .name("vanya123")
             .login("Ivan Petrov")
@@ -34,7 +34,7 @@ class UserStorageTest {
             .build();
 
     User user1 = User.builder()
-            .id(2)
+            .id(2L)
             .email("user1@email.ru")
             .name("Petya")
             .login("Petyyya")
@@ -42,7 +42,7 @@ class UserStorageTest {
             .build();
 
     User user2 = User.builder()
-            .id(3)
+            .id(3L)
             .email("user2@email.ru")
             .name("Sasha Petrov")
             .login("Sasha")
@@ -53,7 +53,7 @@ class UserStorageTest {
     public void testFindUserById() {
         userStorage.create(user);
 
-        User savedUser = userStorage.getUserById(1);
+        User savedUser = userStorage.getUserById(1L);
 
         assertThat(savedUser)
                 .isNotNull()
@@ -64,7 +64,7 @@ class UserStorageTest {
     @Test
     public void testFindUserByInvalidId() {
         EntityNotFoundException entityNotFoundException = Assertions.assertThrows(
-                EntityNotFoundException.class, () -> userStorage.getUserById(1));
+                EntityNotFoundException.class, () -> userStorage.getUserById(1L));
         Assertions.assertEquals("Пользователя c id 1 не существует", entityNotFoundException.getMessage());
     }
 
@@ -82,7 +82,7 @@ class UserStorageTest {
     public void testCreate() {
         userStorage.create(user);
 
-        User getUser = userStorage.getUserById(1);
+        User getUser = userStorage.getUserById(1L);
         Assertions.assertEquals(user, getUser);
     }
 
@@ -93,38 +93,38 @@ class UserStorageTest {
         user.setLogin("update");
         userStorage.update(user);
 
-        User getUser = userStorage.getUserById(1);
+        User getUser = userStorage.getUserById(1L);
         Assertions.assertEquals(user, getUser);
     }
 
     @Test
     public void testAddFriendAndRemove() {
         userStorage.create(user);
-        Assertions.assertEquals(new ArrayList<>(), userStorage.getFriends(1));
+        Assertions.assertEquals(new ArrayList<>(), userStorage.getFriends(1L));
 
         userStorage.create(user1);
-        userStorage.addFriend(1, 2);
-        Assertions.assertEquals(List.of(user1), userStorage.getFriends(1));
-        Assertions.assertEquals(new ArrayList<>(), userStorage.getFriends(2));
+        userStorage.addFriend(1L, 2L);
+        Assertions.assertEquals(List.of(user1), userStorage.getFriends(1L));
+        Assertions.assertEquals(new ArrayList<>(), userStorage.getFriends(2L));
 
-        userStorage.addFriend(2, 1);
-        Assertions.assertEquals(List.of(user1), userStorage.getFriends(1));
-        Assertions.assertEquals(List.of(user), userStorage.getFriends(2));
+        userStorage.addFriend(2L, 1L);
+        Assertions.assertEquals(List.of(user1), userStorage.getFriends(1L));
+        Assertions.assertEquals(List.of(user), userStorage.getFriends(2L));
 
-        userStorage.removeFriend(1, 2);
-        userStorage.removeFriend(2, 1);
+        userStorage.removeFriend(1L, 2L);
+        userStorage.removeFriend(2L, 1L);
 
-        Assertions.assertEquals(new ArrayList<>(), userStorage.getFriends(1));
-        Assertions.assertEquals(new ArrayList<>(), userStorage.getFriends(2));
+        Assertions.assertEquals(new ArrayList<>(), userStorage.getFriends(1L));
+        Assertions.assertEquals(new ArrayList<>(), userStorage.getFriends(2L));
     }
 
     @Test
     public void testAddFriendSecondTimeShouldGiveException() {
         userStorage.create(user);
         userStorage.create(user1);
-        userStorage.addFriend(1, 2);
+        userStorage.addFriend(1L, 2L);
         EntityAlreadyExistException entityAlreadyExistException = Assertions.assertThrows(
-                EntityAlreadyExistException.class, () -> userStorage.addFriend(1, 2));
+                EntityAlreadyExistException.class, () -> userStorage.addFriend(1L, 2L));
         Assertions.assertEquals("Дружба уже существует", entityAlreadyExistException.getMessage());
     }
 
@@ -134,10 +134,10 @@ class UserStorageTest {
         userStorage.create(user1);
         userStorage.create(user2);
 
-        userStorage.addFriend(1, 2);
-        userStorage.addFriend(1, 3);
-        userStorage.addFriend(2, 3);
+        userStorage.addFriend(1L, 2L);
+        userStorage.addFriend(1L, 3L);
+        userStorage.addFriend(2L, 3L);
 
-        Assertions.assertEquals(List.of(user2), userStorage.getCommonFriends(1, 2));
+        Assertions.assertEquals(List.of(user2), userStorage.getCommonFriends(1L, 2L));
     }
 }

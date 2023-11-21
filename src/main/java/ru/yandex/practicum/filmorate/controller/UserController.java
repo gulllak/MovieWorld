@@ -42,32 +42,32 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable(value = "id") int id) {
+    public User getUserById(@PathVariable(value = "id") Long id) {
         return userService.getUserById(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> getCommonFriends(@PathVariable(value = "id") int id,
-                                       @PathVariable(value = "otherId") int otherId) {
+    public List<User> getCommonFriends(@PathVariable(value = "id") Long id,
+                                       @PathVariable(value = "otherId") Long otherId) {
         return userService.getCommonFriends(id, otherId);
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public ResponseEntity<HttpStatus> addFriend(@PathVariable(value = "id") int id,
-                                                @PathVariable(value = "friendId") int friendId) {
+    public ResponseEntity<HttpStatus> addFriend(@PathVariable(value = "id") Long id,
+                                                @PathVariable(value = "friendId") Long friendId) {
         userService.addFriend(id, friendId);
 
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @GetMapping("{id}/friends")
-    public List<User> getFriends(@PathVariable(value = "id") int id) {
+    public List<User> getFriends(@PathVariable(value = "id") Long id) {
         return userService.getFriends(id);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public ResponseEntity<HttpStatus> removeFriend(@PathVariable(value = "id") int id,
-                                                   @PathVariable(value = "friendId") int friendId) {
+    public ResponseEntity<HttpStatus> removeFriend(@PathVariable(value = "id") Long id,
+                                                   @PathVariable(value = "friendId") Long friendId) {
         userService.removeFriend(id, friendId);
         return ResponseEntity.ok(HttpStatus.OK);
     }

@@ -42,7 +42,7 @@ public class UserDbStorage implements UserStorage {
             stmt.setDate(4, Date.valueOf(user.getBirthday()));
             return stmt;
         }, keyHolder);
-        return getUserById(Objects.requireNonNull(keyHolder.getKey()).intValue());
+        return getUserById(Objects.requireNonNull(keyHolder.getKey()).longValue());
     }
 
     @Override
@@ -53,7 +53,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User getUserById(int id) {
+    public User getUserById(Long id) {
         String sqlQuery = "SELECT * FROM users WHERE id = ?";
         List<User> users = jdbcTemplate.query(sqlQuery, this::createUser, id);
         if (users.size() != 1) {
@@ -63,14 +63,14 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public List<User> getFriends(int id) {
+    public List<User> getFriends(Long id) {
         String sqlQuery = "SELECT * FROM users WHERE id IN (SELECT friend_id FROM friends WHERE user_id = ?)";
 
         return jdbcTemplate.query(sqlQuery, this::createUser, id);
     }
 
     @Override
-    public void addFriend(int id, int friendId) {
+    public void addFriend(Long id, Long friendId) {
         String sqlQuery = "INSERT INTO friends (user_id, friend_id) VALUES (?, ?)";
 
         if (friendshipExists(id, friendId)) {
@@ -80,13 +80,13 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public void removeFriend(int id, int friendId) {
+    public void removeFriend(Long id, Long friendId) {
         String sqlQuery = "DELETE FROM friends WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(sqlQuery, id, friendId);
     }
 
     @Override
-    public List<User> getCommonFriends(int id, int otherId) {
+    public List<User> getCommonFriends(Long id, Long otherId) {
         String sqlQuery = "SELECT * FROM users WHERE id IN (SELECT friend_id FROM friends WHERE user_id = ? " +
                 "INTERSECT SELECT friend_id FROM friends WHERE user_id = ?)";
 
@@ -95,7 +95,7 @@ public class UserDbStorage implements UserStorage {
 
     private User createUser(ResultSet rs, int rowNum) throws SQLException {
         return User.builder()
-                .id(rs.getInt("id"))
+                .id(rs.getLong("id"))
                 .email(rs.getString("email"))
                 .name(rs.getString("name"))
                 .login(rs.getString("login"))
@@ -103,7 +103,7 @@ public class UserDbStorage implements UserStorage {
                 .build();
     }
 
-    private boolean friendshipExists(int userId, int friendId) {
+    private boolean friendshipExists(Long userId, Long friendId) {
         String sqlQuery = "SELECT * FROM friends WHERE user_id = ? AND friend_id = ?";
         SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(sqlQuery, userId, friendId);
         return sqlRowSet.next();

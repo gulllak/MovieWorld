@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
-    private Integer id = 0;
+    private Long id = 0L;
 
-    private final Map<Integer, User> users = new HashMap<>();
+    private final Map<Long, User> users = new HashMap<>();
 
     @Override
     public List<User> findAll() {
@@ -48,7 +48,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User getUserById(int id) {
+    public User getUserById(Long id) {
         if (!users.containsKey(id)) {
             throw new EntityNotFoundException("Пользователь не найден");
         }
@@ -56,40 +56,40 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public List<User> getFriends(int id) {
+    public List<User> getFriends(Long id) {
         return getUserById(id).getFriends().stream().map(this::getUserById).collect(Collectors.toList());
     }
 
     @Override
-    public void addFriend(int id, int friendId) {
+    public void addFriend(Long id, Long friendId) {
         getUserById(id).getFriends().add(friendId);
         getUserById(friendId).getFriends().add(id);
     }
 
     @Override
-    public void removeFriend(int id, int friendId) {
+    public void removeFriend(Long id, Long friendId) {
         getUserById(id).getFriends().remove(friendId);
         getUserById(friendId).getFriends().remove(id);
     }
 
     @Override
-    public List<User> getCommonFriends(int id, int otherId) {
-        Set<Integer> user = getUserById(id).getFriends();
-        Set<Integer> otherUser = getUserById(otherId).getFriends();
+    public List<User> getCommonFriends(Long id, Long otherId) {
+        Set<Long> user = getUserById(id).getFriends();
+        Set<Long> otherUser = getUserById(otherId).getFriends();
 
-        Set<Integer> commonFriendsId = user.stream()
+        Set<Long> commonFriendsId = user.stream()
                 .filter(otherUser::contains)
                 .collect(Collectors.toSet());
 
         List<User> commonFriends = new ArrayList<>();
-        for (Integer userId : commonFriendsId) {
+        for (Long userId : commonFriendsId) {
             commonFriends.add(getUserById(userId));
         }
 
         return commonFriends;
     }
 
-    private Integer getNextId() {
+    private Long getNextId() {
         return ++id;
     }
 }
