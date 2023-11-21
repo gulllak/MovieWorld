@@ -1,18 +1,19 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
@@ -26,8 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 @AutoConfigureMockMvc
+@AutoConfigureTestDatabase
 class FilmControllerTest {
-    private final Film film = new Film();
 
     @Autowired
     private MockMvc mockMvc;
@@ -35,14 +36,16 @@ class FilmControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @BeforeEach
-    public void init() {
-        film.setName("RRR");
-        film.setDescription("Indian");
-        film.setReleaseDate(LocalDate.of(2022, 3, 24));
-        film.setDuration(187);
-        film.setLikes(new HashSet<>());
-    }
+    Mpa mpa = Mpa.builder().id(1L).name("G").build();
+    private final Film film = Film.builder()
+            .id(1L)
+            .name("RRR")
+            .description("Indian")
+            .releaseDate(LocalDate.of(2022, 3, 24))
+            .duration(187)
+            .mpa(mpa)
+            .genres(new ArrayList<>())
+            .build();
 
     @Test
     public void addFilmShouldGiveStatus200andFilmReturned() throws Exception {
@@ -122,7 +125,7 @@ class FilmControllerTest {
                 .content(objectMapper.writeValueAsString(film))
                 .contentType(MediaType.APPLICATION_JSON));
 
-        film.setId(1);
+        film.setId(1L);
         film.setName("WWW");
         film.setDescription("Super Film");
         mockMvc.perform(put("/films")
@@ -144,24 +147,29 @@ class FilmControllerTest {
                         .content(objectMapper.writeValueAsString(film))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().json("{\"error\":\"Фильм не найден\"}"));
+                .andExpect(content().json("{\"error\":\"Фильм c id 1 не существует\"}"));
     }
 
     @Test
     public void getAllFilmShouldGive2() throws Exception {
-        Film filmFirst = new Film();
-        filmFirst.setName("First");
-        filmFirst.setDescription("Comedy film");
-        filmFirst.setReleaseDate(LocalDate.of(2015, 12, 1));
-        filmFirst.setDuration(143);
-        filmFirst.setLikes(new HashSet<>());
+        Film filmFirst = Film.builder()
+                .id(1L)
+                .name("First")
+                .description("Comedy film")
+                .releaseDate(LocalDate.of(2015, 12, 1))
+                .duration(143)
+                .mpa(mpa)
+                .build();
 
-        Film filmSecond = new Film();
-        filmSecond.setName("Second");
-        filmSecond.setDescription("Action film");
-        filmSecond.setReleaseDate(LocalDate.of(2020, 3, 28));
-        filmSecond.setDuration(120);
-        filmSecond.setLikes(new HashSet<>());
+
+        Film filmSecond = Film.builder()
+                .id(2L)
+                .name("Second")
+                .description("Action film")
+                .releaseDate(LocalDate.of(2020, 3, 28))
+                .duration(120)
+                .mpa(mpa)
+                .build();
 
         mockMvc.perform(post("/films")
                 .content(objectMapper.writeValueAsString(filmFirst))
@@ -171,9 +179,6 @@ class FilmControllerTest {
         mockMvc.perform(post("/films")
                 .content(objectMapper.writeValueAsString(filmSecond))
                 .contentType(MediaType.APPLICATION_JSON));
-
-        filmFirst.setId(1);
-        filmSecond.setId(2);
 
         mockMvc.perform(get("/films"))
                 .andExpect(status().is2xxSuccessful())

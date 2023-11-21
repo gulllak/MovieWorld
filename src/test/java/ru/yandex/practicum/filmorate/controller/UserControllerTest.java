@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -12,7 +11,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
 
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
@@ -27,22 +25,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 @AutoConfigureMockMvc
 class UserControllerTest {
-    private final User user = new User();
+    private final User user = User.builder()
+            .id(1L)
+            .email("mail@mail.ru")
+            .login("user")
+            .name("Vasya")
+            .birthday(LocalDate.of(2000, 5, 5))
+            .build();
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @BeforeEach
-    public void init() {
-        user.setEmail("mail@mail.ru");
-        user.setLogin("user");
-        user.setName("Vasya");
-        user.setBirthday(LocalDate.of(2000, 5, 5));
-        user.setFriends(new HashSet<>());
-    }
 
     @Test
     public void addUserShouldGiveStatus200andUserReturned() throws Exception {
@@ -54,8 +49,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.email").value("mail@mail.ru"))
                 .andExpect(jsonPath("$.login").value("user"))
                 .andExpect(jsonPath("$.name").value("Vasya"))
-                .andExpect(jsonPath("$.birthday").value("2000-05-05"))
-                .andExpect(jsonPath("$.friends").isEmpty());
+                .andExpect(jsonPath("$.birthday").value("2000-05-05"));
 
     }
 
@@ -115,8 +109,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.email").value("mail@mail.ru"))
                 .andExpect(jsonPath("$.login").value("user"))
                 .andExpect(jsonPath("$.name").value("user"))
-                .andExpect(jsonPath("$.birthday").value("2000-05-05"))
-                .andExpect(jsonPath("$.friends").isEmpty());
+                .andExpect(jsonPath("$.birthday").value("2000-05-05"));
     }
 
     @Test
@@ -125,7 +118,7 @@ class UserControllerTest {
                 .content(objectMapper.writeValueAsString(user))
                 .contentType(MediaType.APPLICATION_JSON));
 
-        user.setId(1);
+        user.setId(1L);
         user.setName("UUUSSSER");
         user.setLogin("VASKA");
 
@@ -137,8 +130,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.email").value("mail@mail.ru"))
                 .andExpect(jsonPath("$.login").value("VASKA"))
                 .andExpect(jsonPath("$.name").value("UUUSSSER"))
-                .andExpect(jsonPath("$.birthday").value("2000-05-05"))
-                .andExpect(jsonPath("$.friends").isEmpty());
+                .andExpect(jsonPath("$.birthday").value("2000-05-05"));
     }
 
     @Test
@@ -147,17 +139,18 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(user))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().json("{\"error\":\"Пользователь не найден\"}"));
+                .andExpect(content().json("{\"error\":\"Пользователя c id 1 не существует\"}"));
     }
 
     @Test
     public void getAllUserShouldGive2() throws Exception {
-        User userSecond = new User();
-        userSecond.setEmail("asd@mail.ru");
-        userSecond.setLogin("second");
-        userSecond.setName("second");
-        userSecond.setBirthday(LocalDate.of(2005, 1, 2));
-        userSecond.setFriends(new HashSet<>());
+        User userSecond = User.builder()
+                .id(2L)
+                .email("asd@mail.ru")
+                .login("second")
+                .name("second")
+                .birthday(LocalDate.of(2005, 1, 2))
+                .build();
 
         mockMvc.perform(post("/users")
                         .content(objectMapper.writeValueAsString(user))
@@ -169,8 +162,8 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        user.setId(1);
-        userSecond.setId(2);
+        user.setId(1L);
+        userSecond.setId(2L);
 
         mockMvc.perform(get("/users"))
                 .andExpect(status().is2xxSuccessful())

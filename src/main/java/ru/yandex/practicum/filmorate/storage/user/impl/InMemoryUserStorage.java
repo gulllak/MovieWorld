@@ -11,13 +11,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
-    private Integer id = 0;
+    private Long id = 0L;
 
-    private final Map<Integer, User> users = new HashMap<>();
+    private final Map<Long, User> users = new HashMap<>();
 
     @Override
     public List<User> findAll() {
@@ -46,14 +48,48 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User getUserById(int id) {
+    public User getUserById(Long id) {
         if (!users.containsKey(id)) {
             throw new EntityNotFoundException("Пользователь не найден");
         }
         return users.get(id);
     }
 
-    private Integer getNextId() {
+    @Override
+    public List<User> getFriends(Long id) {
+        return getUserById(id).getFriends().stream().map(this::getUserById).collect(Collectors.toList());
+    }
+
+    @Override
+    public void addFriend(Long id, Long friendId) {
+        getUserById(id).getFriends().add(friendId);
+        getUserById(friendId).getFriends().add(id);
+    }
+
+    @Override
+    public void removeFriend(Long id, Long friendId) {
+        getUserById(id).getFriends().remove(friendId);
+        getUserById(friendId).getFriends().remove(id);
+    }
+
+    @Override
+    public List<User> getCommonFriends(Long id, Long otherId) {
+        Set<Long> user = getUserById(id).getFriends();
+        Set<Long> otherUser = getUserById(otherId).getFriends();
+
+        Set<Long> commonFriendsId = user.stream()
+                .filter(otherUser::contains)
+                .collect(Collectors.toSet());
+
+        List<User> commonFriends = new ArrayList<>();
+        for (Long userId : commonFriendsId) {
+            commonFriends.add(getUserById(userId));
+        }
+
+        return commonFriends;
+    }
+
+    private Long getNextId() {
         return ++id;
     }
 }
