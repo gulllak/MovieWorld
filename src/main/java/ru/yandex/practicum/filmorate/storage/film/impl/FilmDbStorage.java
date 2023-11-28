@@ -119,12 +119,9 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(Long userId, Long friendId) {
-        //проверки на существование пользователей и их дружбу
+        //проверки на существование пользователей
         userStorage.getUserById(userId);
         userStorage.getUserById(friendId);
-        if (!userStorage.friendshipExists(userId, friendId) || userStorage.friendshipExists(friendId, userId)) {
-            throw new EntityNotFoundException("Пользователи не находятся друг у друга в друзьях.");
-        }
         //получение id-шников лайкнутых фильмов среди двух пользователей
         String sqlQuery = "SELECT film_id FROM likes WHERE user_id = ? OR user_id = ?";
         List<Long> ids = searchPairedElements(jdbcTemplate.queryForList(sqlQuery, Long.class, userId, friendId));

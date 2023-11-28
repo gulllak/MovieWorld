@@ -103,7 +103,7 @@ public class UserDbStorage implements UserStorage {
                 .build();
     }
 
-    public boolean friendshipExists(Long userId, Long friendId) {
+    private boolean friendshipExists(Long userId, Long friendId) {
         String sqlQuery = "SELECT * FROM friends WHERE user_id = ? AND friend_id = ?";
         SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(sqlQuery, userId, friendId);
         return sqlRowSet.next();
