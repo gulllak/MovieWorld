@@ -43,7 +43,7 @@ public class LikeDbStorage implements LikeStorage {
     }
 
     @Override
-    public List<Long> getCommonFilmIds(Long userId, Long friendId){
+    public List<Long> getCommonFilmIds(Long userId, Long friendId) {
         String sqlQuery = "SELECT l1.film_id\n" +
                 "FROM likes AS l1\n" +
                 "INNER JOIN likes AS l2 ON l1.film_id = l2.film_id AND l1.user_id <> l2.user_id\n" +
