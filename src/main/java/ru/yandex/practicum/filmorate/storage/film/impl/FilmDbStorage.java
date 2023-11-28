@@ -123,8 +123,7 @@ public class FilmDbStorage implements FilmStorage {
         userStorage.getUserById(userId);
         userStorage.getUserById(friendId);
         //получение id-шников лайкнутых фильмов среди двух пользователей
-        String sqlQuery = "SELECT film_id FROM likes WHERE user_id = ? OR user_id = ?";
-        List<Long> ids = searchPairedElements(jdbcTemplate.queryForList(sqlQuery, Long.class, userId, friendId));
+        List<Long> ids = likeStorage.getCommonFilmIds(userId, friendId);
         //создание фильмов
         List<Film> commonFilms = new ArrayList<>();
         for (Long id : ids) {
@@ -136,27 +135,6 @@ public class FilmDbStorage implements FilmStorage {
                     int comp = compare(p0.getLikes().size(), p1.getLikes().size());
                     return -1 * comp;
                 }).collect(Collectors.toList());
-    }
-
-    //алгоритм для нахождения парных id-шников
-    private List<Long> searchPairedElements(List<Long> elements) {
-        //создание мапы ключ-id фильма, значение-количество лайков
-        Map<Long, Integer> pairs = new HashMap<>();
-        for (Long element : elements) {
-            if (pairs.containsKey(element)) {
-                pairs.put(element, pairs.get(element) + 1);
-            } else {
-                pairs.put(element, 1);
-            }
-        }
-        elements.clear();
-        //если у нас значение в ключе равно 2, то оно идет в лист
-        for (Long id : pairs.keySet()) {
-            if (pairs.get(id) == 2) {
-                elements.add(id);
-            }
-        }
-        return elements;
     }
 
     private List<Film> createFilm(ResultSet rs) throws SQLException {
