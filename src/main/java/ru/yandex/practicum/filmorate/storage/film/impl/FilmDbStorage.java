@@ -122,7 +122,7 @@ public class FilmDbStorage implements FilmStorage {
         //проверки на существование пользователей и их дружбу
         userStorage.getUserById(userId);
         userStorage.getUserById(friendId);
-        if(!userStorage.friendshipExists(userId, friendId) || userStorage.friendshipExists(friendId, userId)){
+        if (!userStorage.friendshipExists(userId, friendId) || userStorage.friendshipExists(friendId, userId)) {
             throw new EntityNotFoundException("Пользователи не находятся друг у друга в друзьях.");
         }
         //получение id-шников лайкнутых фильмов среди двух пользователей
