@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
+import ru.yandex.practicum.filmorate.storage.user.impl.UserDbStorage;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -23,6 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static java.lang.Integer.compare;
 
 @Component
 @RequiredArgsConstructor
@@ -32,6 +36,8 @@ public class FilmDbStorage implements FilmStorage {
     private final GenreStorage genreStorage;
 
     private final LikeStorage likeStorage;
+
+    private final UserDbStorage userStorage;
 
     @Override
     public List<Film> findAll() {
@@ -109,6 +115,26 @@ public class FilmDbStorage implements FilmStorage {
             films.add(getFilmById(id));
         }
         return films;
+    }
+
+    @Override
+    public List<Film> getCommonFilms(Long userId, Long friendId) {
+        //проверки на существование пользователей
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
+        //получение id-шников лайкнутых фильмов среди двух пользователей
+        List<Long> ids = likeStorage.getCommonFilmIds(userId, friendId);
+        //создание фильмов
+        List<Film> commonFilms = new ArrayList<>();
+        for (Long id : ids) {
+            commonFilms.add(getFilmById(id));
+        }
+        //сортировка фильмов по популярности
+        return commonFilms.stream()
+                .sorted((p0, p1) -> {
+                    int comp = compare(p0.getLikes().size(), p1.getLikes().size());
+                    return -1 * comp;
+                }).collect(Collectors.toList());
     }
 
     private List<Film> createFilm(ResultSet rs) throws SQLException {
