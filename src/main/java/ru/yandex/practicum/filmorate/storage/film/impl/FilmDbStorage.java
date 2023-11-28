@@ -102,10 +102,10 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularFilms(int count) {
+    public List<Film> getPopularFilms(Integer limit, Long genreId, Integer year) {
         List<Film> films = new ArrayList<>();
 
-        for (Long id : likeStorage.getPopularFilms(count)) {
+        for (Long id : likeStorage.getPopularFilms(limit, genreId, year)) {
             films.add(getFilmById(id));
         }
         return films;
