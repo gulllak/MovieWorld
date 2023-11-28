@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
+import ru.yandex.practicum.filmorate.storage.user.impl.UserDbStorage;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -23,6 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static java.lang.Integer.compare;
 
 @Component
 @RequiredArgsConstructor
@@ -32,6 +36,8 @@ public class FilmDbStorage implements FilmStorage {
     private final GenreStorage genreStorage;
 
     private final LikeStorage likeStorage;
+
+    private final UserDbStorage userStorage;
 
     @Override
     public List<Film> findAll() {
@@ -109,6 +115,51 @@ public class FilmDbStorage implements FilmStorage {
             films.add(getFilmById(id));
         }
         return films;
+    }
+
+    @Override
+    public List<Film> getCommonFilms(Long userId, Long friendId) {
+        //проверки на существование пользователей и их дружбу
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
+        if(!userStorage.friendshipExists(userId, friendId) || userStorage.friendshipExists(friendId, userId)){
+            throw new EntityNotFoundException("Пользователи не находятся друг у друга в друзьях.");
+        }
+        //получение id-шников лайкнутых фильмов среди двух пользователей
+        String sqlQuery = "SELECT film_id FROM likes WHERE user_id = ? OR user_id = ?";
+        List<Long> ids = searchPairedElements(jdbcTemplate.queryForList(sqlQuery, Long.class, userId, friendId));
+        //создание фильмов
+        List<Film> commonFilms = new ArrayList<>();
+        for (Long id : ids) {
+            commonFilms.add(getFilmById(id));
+        }
+        //сортировка фильмов по популярности
+        return commonFilms.stream()
+                .sorted((p0, p1) -> {
+                    int comp = compare(p0.getLikes().size(), p1.getLikes().size());
+                    return -1 * comp;
+                }).collect(Collectors.toList());
+    }
+
+    //алгоритм для нахождения парных id-шников
+    private List<Long> searchPairedElements(List<Long> elements) {
+        //создание мапы ключ-id фильма, значение-количество лайков
+        Map<Long, Integer> pairs = new HashMap<>();
+        for (Long element : elements) {
+            if (pairs.containsKey(element)) {
+                pairs.put(element, pairs.get(element) + 1);
+            } else {
+                pairs.put(element, 1);
+            }
+        }
+        elements.clear();
+        //если у нас значение в ключе равно 2, то оно идет в лист
+        for (Long id : pairs.keySet()) {
+            if (pairs.get(id) == 2) {
+                elements.add(id);
+            }
+        }
+        return elements;
     }
 
     private List<Film> createFilm(ResultSet rs) throws SQLException {
