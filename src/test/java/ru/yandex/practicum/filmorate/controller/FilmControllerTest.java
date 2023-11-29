@@ -147,7 +147,7 @@ class FilmControllerTest {
                         .content(objectMapper.writeValueAsString(film))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().json("{\"error\":\"Фильм c id 1 не существует\"}"));
+                .andExpect(content().json("{\"error\":\"Фильм c id 1 отсутствует\"}"));
     }
 
     @Test

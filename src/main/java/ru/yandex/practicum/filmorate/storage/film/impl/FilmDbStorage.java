@@ -7,9 +7,11 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
@@ -20,7 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -35,18 +37,22 @@ public class FilmDbStorage implements FilmStorage {
 
     private final GenreStorage genreStorage;
 
+    private final DirectorStorage directorStorage;
+
     private final LikeStorage likeStorage;
 
     private final UserDbStorage userStorage;
 
     @Override
     public List<Film> findAll() {
-        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name " +
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name, d.id AS director_id, d.name AS director_name " +
                 "FROM films f " +
                 "LEFT JOIN mpa m ON f.mpa_id = m.id " +
                 "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
                 "LEFT JOIN genres g ON fg.genre_id = g.id " +
-                "GROUP BY f.id, f.name, f.description, f.releaseDate, f.duration, m.id, m.name, g.id, g.name";
+                "LEFT JOIN film_directors fd ON f.id = fd.film_id " +
+                "LEFT JOIN directors d ON fd.director_id = d.id " +
+                "GROUP BY f.id, m.id, g.id, d.id";
         return jdbcTemplate.query(sqlQuery, this::createFilm);
     }
 
@@ -67,6 +73,7 @@ public class FilmDbStorage implements FilmStorage {
 
         Long filmId = Objects.requireNonNull(keyHolder.getKey()).longValue();
         genreStorage.setFilmsGenres(filmId, film.getGenres());
+        directorStorage.setFilmsDirectors(filmId, film.getDirectors());
         return getFilmById(filmId);
     }
 
@@ -75,22 +82,25 @@ public class FilmDbStorage implements FilmStorage {
         String sqlQuery = "UPDATE films SET name = ?, description = ?, releasedate = ?, duration = ?, mpa_id =? WHERE id = ?";
         jdbcTemplate.update(sqlQuery, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(), film.getMpa().getId(), film.getId());
         genreStorage.setFilmsGenres(film.getId(), film.getGenres());
+        directorStorage.setFilmsDirectors(film.getId(), film.getDirectors());
         return getFilmById(film.getId());
     }
 
     @Override
     public Film getFilmById(Long id) {
-        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name " +
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name, d.id AS director_id, d.name AS director_name " +
                 "FROM films f " +
                 "LEFT JOIN mpa m ON f.mpa_id = m.id " +
                 "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
                 "LEFT JOIN genres g ON fg.genre_id = g.id " +
+                "LEFT JOIN film_directors fd ON f.id = fd.film_id " +
+                "LEFT JOIN directors d ON fd.director_id = d.id " +
                 "WHERE f.id = ? " +
-                "GROUP BY f.id, f.name, f.description, f.releaseDate, f.duration, m.id, m.name, g.id, g.name";
+                "GROUP BY f.id, m.id, g.id, d.id";
 
         List<Film> films = jdbcTemplate.query(sqlQuery, this::createFilm, id);
         if (films.size() != 1) {
-            throw new EntityNotFoundException(String.format("Фильм c id %s не существует", id));
+            throw new EntityNotFoundException(String.format("Фильм c id %s отсутствует", id));
         }
         return films.get(0);
     }
@@ -137,15 +147,56 @@ public class FilmDbStorage implements FilmStorage {
                 }).collect(Collectors.toList());
     }
 
+    @Override
+    public List<Film> getDirectorFilmsByYear(Long directorId) {
+        directorStorage.getById(directorId);
+
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name, d.id AS director_id, d.name AS director_name " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
+                "LEFT JOIN genres g ON fg.genre_id = g.id " +
+                "LEFT JOIN film_directors fd ON f.id = fd.film_id " +
+                "LEFT JOIN directors d ON fd.director_id = d.id " +
+                "WHERE d.id = ? " +
+                "GROUP BY d.id, f.releaseDate " +
+                "ORDER BY EXTRACT(YEAR FROM CAST(f.releaseDate AS DATE))";
+        return jdbcTemplate.query(sqlQuery, this::createFilm, directorId);
+    }
+
+    @Override
+    public List<Film> getDirectorFilmsByLikes(Long directorId) {
+        directorStorage.getById(directorId);
+
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name, d.id AS director_id, d.name AS director_name, COUNT(l.film_id) AS count_likes " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
+                "LEFT JOIN genres g ON fg.genre_id = g.id " +
+                "LEFT JOIN film_directors fd ON f.id = fd.film_id " +
+                "LEFT JOIN directors d ON fd.director_id = d.id " +
+                "LEFT JOIN likes l ON f.id = l.film_id " +
+                "WHERE d.id = ? " +
+                "GROUP BY d.id, g.id " +
+                "ORDER BY count_likes";
+        return jdbcTemplate.query(sqlQuery, this::createFilm, directorId);
+    }
+
     private List<Film> createFilm(ResultSet rs) throws SQLException {
         ResultSetExtractor<List<Film>> resultSetExtractor = rs1 -> {
-            Map<Long, Film> list = new HashMap<>();
+            Map<Long, Film> list = new LinkedHashMap<>();
             while (rs1.next()) {
                 if (list.containsKey(rs1.getLong("id"))) {
                     list.get(rs1.getLong("id")).getGenres().add(Genre.builder()
                             .id(rs1.getLong("genre_id"))
                             .name(rs1.getString("genre_name"))
                             .build());
+                    if (rs1.getLong("director_id") != 0) {
+                        list.get(rs1.getLong("id")).getDirectors().add(Director.builder()
+                                .id(rs1.getLong("director_id"))
+                                .name(rs1.getString("director_name"))
+                                .build());
+                    }
                 } else {
                     Film film = Film.builder()
                             .id(rs1.getLong("id"))
@@ -158,12 +209,20 @@ public class FilmDbStorage implements FilmStorage {
                                     .name(rs1.getString("mpa_name"))
                                     .build())
                             .genres(new ArrayList<>())
+                            .directors(new ArrayList<>())
                             .build();
 
-                    if (rs1.getInt("genre_id") != 0) {
+                    if (rs1.getLong("genre_id") != 0) {
                         film.getGenres().add(Genre.builder()
                                 .id(rs1.getLong("genre_id"))
                                 .name(rs1.getString("genre_name"))
+                                .build());
+                    }
+
+                    if (rs1.getLong("director_id") != 0) {
+                        film.getDirectors().add(Director.builder()
+                                .id(rs1.getLong("director_id"))
+                                .name(rs1.getString("director_name"))
                                 .build());
                     }
 
