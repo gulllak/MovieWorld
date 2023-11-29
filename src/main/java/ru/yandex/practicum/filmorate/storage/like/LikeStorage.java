@@ -8,4 +8,6 @@ public interface LikeStorage {
     void removeLike(Long filmId, Long userId);
 
     List<Long> getPopularFilms(Integer limit, Long genreId, Integer year);
+
+    List<Long> getCommonFilmIds(Long userId, Long friendId);
 }
