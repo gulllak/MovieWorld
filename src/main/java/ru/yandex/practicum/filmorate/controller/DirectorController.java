@@ -29,7 +29,7 @@ public class DirectorController {
     }
 
     @GetMapping("/{id}")
-    public Director getById(@PathVariable("id") Long id) {
+    public Director getById(@PathVariable(value = "id") Long id) {
         return directorService.getById(id);
     }
 
@@ -44,7 +44,7 @@ public class DirectorController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> remove(@PathVariable("id") Long id) {
+    public ResponseEntity<HttpStatus> remove(@PathVariable(value = "id") Long id) {
         directorService.remove(id);
         return ResponseEntity.ok(HttpStatus.OK);
     }
