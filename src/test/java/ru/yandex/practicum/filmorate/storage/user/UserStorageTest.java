@@ -65,7 +65,7 @@ class UserStorageTest {
     public void testFindUserByInvalidId() {
         EntityNotFoundException entityNotFoundException = Assertions.assertThrows(
                 EntityNotFoundException.class, () -> userStorage.getUserById(1L));
-        Assertions.assertEquals("Пользователя c id 1 не существует", entityNotFoundException.getMessage());
+        Assertions.assertEquals("Пользователя c id 1 отсутствует", entityNotFoundException.getMessage());
     }
 
     @Test

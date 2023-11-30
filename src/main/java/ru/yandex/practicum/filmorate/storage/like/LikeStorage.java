@@ -10,4 +10,6 @@ public interface LikeStorage {
     List<Long> getPopularFilms(Integer limit, Long genreId, Integer year);
 
     List<Long> getCommonFilmIds(Long userId, Long friendId);
+
+    List<Long> getLikedFilmsByUserId(Long id);
 }

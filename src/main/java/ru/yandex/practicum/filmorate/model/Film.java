@@ -29,4 +29,6 @@ public class Film {
     private Set<Long> likes;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<Genre> genres;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<Director> directors;
 }

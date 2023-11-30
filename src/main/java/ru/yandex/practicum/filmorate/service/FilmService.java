@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -45,5 +46,17 @@ public class FilmService {
 
     public List<Film> getCommonFilms(Long userId, Long friendId) {
         return filmStorage.getCommonFilms(userId, friendId);
+    }
+
+    public List<Film> getDirectorFilmsSorted(Long directorId, String sortType) {
+        List<Film> films = new ArrayList<>();
+        if (sortType.equals("year")) {
+            films = filmStorage.getDirectorFilmsByYear(directorId);
+        }
+
+        if (sortType.equals("likes")) {
+            films = filmStorage.getDirectorFilmsByLikes(directorId);
+        }
+        return films;
     }
 }
