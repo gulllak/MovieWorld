@@ -89,6 +89,11 @@ public class InMemoryUserStorage implements UserStorage {
         return commonFriends;
     }
 
+    @Override
+    public void delete(Long userId) {
+
+    }
+
     private Long getNextId() {
         return ++id;
     }

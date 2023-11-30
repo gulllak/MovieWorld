@@ -64,4 +64,11 @@ public class FilmController {
     public List<Film> getPopularFilm(@RequestParam(required = false, defaultValue = "10") int count) {
         return filmService.getPopularFilms(count);
     }
+
+    @DeleteMapping("/{filmId}")
+    public ResponseEntity<HttpStatus> delete(@PathVariable(value = "filmId") Long filmId) {
+        filmService.delete(filmId);
+
+        return ResponseEntity.ok(HttpStatus.OK);
+    }
 }
