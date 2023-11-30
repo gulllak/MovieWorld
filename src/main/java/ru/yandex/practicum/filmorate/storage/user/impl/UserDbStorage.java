@@ -57,7 +57,7 @@ public class UserDbStorage implements UserStorage {
         String sqlQuery = "SELECT * FROM users WHERE id = ?";
         List<User> users = jdbcTemplate.query(sqlQuery, this::createUser, id);
         if (users.size() != 1) {
-            throw new EntityNotFoundException(String.format("Пользователя c id %s не существует", id));
+            throw new EntityNotFoundException(String.format("Пользователя c id %s отсутствует", id));
         }
         return users.get(0);
     }

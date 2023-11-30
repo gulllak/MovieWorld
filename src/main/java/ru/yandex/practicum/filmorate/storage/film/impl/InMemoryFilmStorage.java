@@ -67,11 +67,31 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularFilms(int count) {
+    public List<Film> getPopularFilms(Integer count, Long genreId, Integer year) {
         return findAll().stream()
                 .sorted((o1, o2) -> o2.getLikes().size() - o1.getLikes().size())
                 .limit(count)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Film> getCommonFilms(Long userId, Long friendId) {
+        return null;
+    }
+
+    @Override
+    public List<Film> getRecommendations(Long id) {
+        return null;
+    }
+
+    @Override
+    public List<Film> getDirectorFilmsByYear(Long directorId) {
+        return null;
+    }
+
+    @Override
+    public List<Film> getDirectorFilmsByLikes(Long directorId) {
+        return null;
     }
 
     @Override

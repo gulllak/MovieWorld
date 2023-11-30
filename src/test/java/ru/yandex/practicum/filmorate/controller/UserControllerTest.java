@@ -139,7 +139,7 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(user))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().json("{\"error\":\"Пользователя c id 1 не существует\"}"));
+                .andExpect(content().json("{\"error\":\"Пользователя c id 1 отсутствует\"}"));
     }
 
     @Test

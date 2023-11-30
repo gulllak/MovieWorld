@@ -31,15 +31,53 @@ public class LikeDbStorage implements LikeStorage {
         if (!likeExists(filmId, userId)) {
             throw new EntityAlreadyExistException("Этот пользователь не ставил лайк");
         }
-        jdbcTemplate.update(sqlQuery, filmId, userId);
+        jdbcTemplate.update(sqlQuery, userId, filmId);
     }
 
     @Override
-    public List<Long> getPopularFilms(int count) {
-        String sqlQuery = "SELECT f.ID, COUNT(l.user_id) AS col " +
-                "FROM films AS f LEFT JOIN likes AS l ON f.id = l.film_id GROUP BY f.id ORDER BY col DESC LIMIT ?";
+    public List<Long> getPopularFilms(Integer limit, Long genreId, Integer year) {
+        StringBuilder sqlQuery = new StringBuilder();
+        sqlQuery
+                .append("SELECT f.id, COUNT(l.user_id) AS count_likes FROM films AS f ")
+                .append("LEFT JOIN likes AS l ON l.film_id = f.id ");
+        if (genreId != null && year != null) {
+            sqlQuery
+                    .append("RIGHT JOIN film_genres AS fg ON fg.film_id = f.id ")
+                    .append("WHERE fg.genre_id = ")
+                    .append(genreId)
+                    .append("AND EXTRACT(YEAR FROM f.releaseDate) = ")
+                    .append(year);
+        } else if (genreId != null) {
+            sqlQuery
+                    .append("RIGHT JOIN film_genres AS fg ON fg.film_id = f.id ")
+                    .append("WHERE fg.genre_id = ")
+                    .append(genreId);
+        } else if (year != null) {
+            sqlQuery
+                    .append("WHERE EXTRACT(YEAR FROM f.releaseDate) = ")
+                    .append(year);
+        }
 
-        return jdbcTemplate.query(sqlQuery,this::getId, count);
+        sqlQuery
+                .append("GROUP BY f.id ORDER BY count_likes DESC LIMIT ")
+                .append(limit);
+
+        return jdbcTemplate.query(sqlQuery.toString(), this::getId);
+    }
+
+    @Override
+    public List<Long> getCommonFilmIds(Long userId, Long friendId) {
+        String sqlQuery = "SELECT l1.film_id\n" +
+                "FROM likes AS l1\n" +
+                "INNER JOIN likes AS l2 ON l1.film_id = l2.film_id AND l1.user_id <> l2.user_id\n" +
+                "WHERE l1.user_id = ? AND l2.user_id = ?;";
+        return jdbcTemplate.queryForList(sqlQuery, Long.class, userId, friendId);
+    }
+
+    @Override
+    public List<Long> getLikedFilmsByUserId(Long id) {
+        String sqlQuery = "SELECT film_id FROM likes WHERE user_id = ?";
+        return jdbcTemplate.queryForList(sqlQuery, Long.class, id);
     }
 
     private boolean likeExists(Long filmId, Long userId) {
