@@ -28,7 +28,7 @@ public class GenreDbStorage implements GenreStorage {
         String sql = "SELECT * FROM genres WHERE id = ?";
         List<Genre> genres = jdbcTemplate.query(sql, this::createGenre, id);
         if (genres.size() != 1) {
-            throw new EntityNotFoundException(String.format("Жанр с id %s не единственный", id));
+            throw new EntityNotFoundException(String.format("Жанр с id %s отсутствует", id));
         }
         return genres.get(0);
     }
