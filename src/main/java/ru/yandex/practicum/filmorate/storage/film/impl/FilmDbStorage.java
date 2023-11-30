@@ -137,6 +137,30 @@ public class FilmDbStorage implements FilmStorage {
                 }).collect(Collectors.toList());
     }
 
+    @Override
+    public List<Film> getRecommendations(Long id) {
+        String sqlQuery = "SELECT l.film_id " +
+                          "FROM likes AS l " +
+                          "WHERE l.user_id = (SELECT l2.user_id " + // Поиск пользователя с похожими вкусами
+                                              "FROM likes AS l2 " +
+                                              "WHERE l2.user_id <> ? " +
+                                                "AND l2.film_id IN (SELECT l3.film_id " + // Лайки
+                                                                    "FROM likes AS l3 " +
+                                                                    "WHERE l3.user_id = ?) " +
+                                              "GROUP BY l2.user_id " +
+                                              "ORDER BY COUNT(l2.film_id) DESC " + // Сортировка по пересечениям лайков
+                                              "LIMIT 1)";
+
+        List<Long> recommendations = jdbcTemplate.queryForList(sqlQuery, Long.class, id, id);
+
+        List<Long> alreadyLiked = likeStorage.getLikedFilmsByUserId(id);
+        recommendations.removeAll(alreadyLiked);
+
+        return recommendations.stream()
+                .map(this::getFilmById)
+                .collect(Collectors.toList());
+    }
+
     private List<Film> createFilm(ResultSet rs) throws SQLException {
         ResultSetExtractor<List<Film>> resultSetExtractor = rs1 -> {
             Map<Long, Film> list = new HashMap<>();
