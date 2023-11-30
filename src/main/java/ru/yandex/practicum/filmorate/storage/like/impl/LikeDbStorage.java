@@ -31,7 +31,7 @@ public class LikeDbStorage implements LikeStorage {
         if (!likeExists(filmId, userId)) {
             throw new EntityAlreadyExistException("Этот пользователь не ставил лайк");
         }
-        jdbcTemplate.update(sqlQuery, filmId, userId);
+        jdbcTemplate.update(sqlQuery, userId, filmId);
     }
 
     @Override
@@ -49,6 +49,12 @@ public class LikeDbStorage implements LikeStorage {
                 "INNER JOIN likes AS l2 ON l1.film_id = l2.film_id AND l1.user_id <> l2.user_id\n" +
                 "WHERE l1.user_id = ? AND l2.user_id = ?;";
         return jdbcTemplate.queryForList(sqlQuery, Long.class, userId, friendId);
+    }
+
+    @Override
+    public List<Long> getLikedFilmsByUserId(Long id) {
+        String sqlQuery = "SELECT film_id FROM likes WHERE user_id = ?";
+        return jdbcTemplate.queryForList(sqlQuery, Long.class, id);
     }
 
     private boolean likeExists(Long filmId, Long userId) {
