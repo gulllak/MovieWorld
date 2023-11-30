@@ -69,7 +69,7 @@ public class UserService {
         return filmStorage.getRecommendations(id);
     }
 
-    public void delete(Long userId) {
-        userStorage.delete(userId);
+    public void remove(Long userId) {
+        userStorage.remove(userId);
     }
 }

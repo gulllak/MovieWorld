@@ -82,8 +82,8 @@ public class FilmController {
 
 
     @DeleteMapping("/{filmId}")
-    public ResponseEntity<HttpStatus> delete(@PathVariable(value = "filmId") Long filmId) {
-        filmService.delete(filmId);
+    public ResponseEntity<HttpStatus> remove(@PathVariable(value = "filmId") Long filmId) {
+        filmService.remove(filmId);
 
         return ResponseEntity.ok(HttpStatus.OK);
     }

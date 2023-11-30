@@ -79,8 +79,8 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<HttpStatus> delete(@PathVariable(value = "userId") Long userId) {
-        userService.delete(userId);
+    public ResponseEntity<HttpStatus> remove(@PathVariable(value = "userId") Long userId) {
+        userService.remove(userId);
 
         return ResponseEntity.ok(HttpStatus.OK);
     }
