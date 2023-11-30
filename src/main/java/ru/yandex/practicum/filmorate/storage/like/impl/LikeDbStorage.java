@@ -35,11 +35,34 @@ public class LikeDbStorage implements LikeStorage {
     }
 
     @Override
-    public List<Long> getPopularFilms(int count) {
-        String sqlQuery = "SELECT f.ID, COUNT(l.user_id) AS col " +
-                "FROM films AS f LEFT JOIN likes AS l ON f.id = l.film_id GROUP BY f.id ORDER BY col DESC LIMIT ?";
+    public List<Long> getPopularFilms(Integer limit, Long genreId, Integer year) {
+        StringBuilder sqlQuery = new StringBuilder();
+        sqlQuery
+                .append("SELECT f.id, COUNT(l.user_id) AS count_likes FROM films AS f ")
+                .append("LEFT JOIN likes AS l ON l.film_id = f.id ");
+        if (genreId != null && year != null) {
+            sqlQuery
+                    .append("RIGHT JOIN film_genres AS fg ON fg.film_id = f.id ")
+                    .append("WHERE fg.genre_id = ")
+                    .append(genreId)
+                    .append("AND EXTRACT(YEAR FROM f.releaseDate) = ")
+                    .append(year);
+        } else if (genreId != null) {
+            sqlQuery
+                    .append("RIGHT JOIN film_genres AS fg ON fg.film_id = f.id ")
+                    .append("WHERE fg.genre_id = ")
+                    .append(genreId);
+        } else if (year != null) {
+            sqlQuery
+                    .append("WHERE EXTRACT(YEAR FROM f.releaseDate) = ")
+                    .append(year);
+        }
 
-        return jdbcTemplate.query(sqlQuery,this::getId, count);
+        sqlQuery
+                .append("GROUP BY f.id ORDER BY count_likes DESC LIMIT ")
+                .append(limit);
+
+        return jdbcTemplate.query(sqlQuery.toString(), this::getId);
     }
 
     @Override
