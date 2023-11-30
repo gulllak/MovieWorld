@@ -80,6 +80,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getRecommendations(Long id) {
+        return null;
+    }
+
+    @Override
     public List<Film> getDirectorFilmsByYear(Long directorId) {
         return null;
     }
