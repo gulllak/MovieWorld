@@ -29,4 +29,8 @@ public interface FilmStorage {
     List<Film> getDirectorFilmsByLikes(Long directorId);
 
     void remove(Long filmId);
+
+    List<Film> findFilmsByDirector(String parameter);
+
+    List<Film> findFilmsByTitle(String parameter);
 }

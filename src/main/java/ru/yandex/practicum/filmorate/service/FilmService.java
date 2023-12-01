@@ -6,7 +6,12 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.lang.Integer.compare;
 
 @Service
 public class FilmService {
@@ -62,5 +67,21 @@ public class FilmService {
 
     public void remove(Long filmId) {
         filmStorage.remove(filmId);
+    }
+
+    public List<Film> findFilms(String findingSubstring, List<String> parameters) {
+        Set<Film> foundFilms = new HashSet<>();
+        if (parameters.contains("title")) {
+            foundFilms.addAll(filmStorage.findFilmsByTitle(findingSubstring));
+        }
+        if (parameters.contains("director")) {
+            foundFilms.addAll(filmStorage.findFilmsByDirector(findingSubstring));
+        }
+        return foundFilms.stream()
+                .sorted((p0, p1) -> {
+                    int comp = compare(p0.getLikes().size(), p1.getLikes().size());
+                    return -1 * comp;
+                })
+                .collect(Collectors.toList());
     }
 }

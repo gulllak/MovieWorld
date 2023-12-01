@@ -87,4 +87,10 @@ public class FilmController {
 
         return ResponseEntity.ok(HttpStatus.OK);
     }
+
+    @GetMapping("/search")
+    public List<Film> findFilms(@RequestParam("query") String findingSubstring,
+                                @RequestParam("by") List<String> parameters) {
+        return filmService.findFilms(findingSubstring, parameters);
+    }
 }

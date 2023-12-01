@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -211,6 +212,38 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update("DELETE FROM films WHERE id = ?", filmId);
     }
 
+    @Override
+    public List<Film> findFilmsByTitle(String parameter) {
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, COUNT(l.user_id) AS likes, m.id AS mpa_id, " +
+                "m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name, d.id AS director_id, d.name AS director_name " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "LEFT JOIN likes AS l ON f.id = l.film_id " +
+                "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
+                "LEFT JOIN genres g ON fg.genre_id = g.id " +
+                "LEFT JOIN film_directors fd ON f.id = fd.film_id " +
+                "LEFT JOIN directors d ON fd.director_id = d.id " +
+                "WHERE LOWER(f.name) LIKE LOWER(?)" +
+                "GROUP BY f.id, m.id, g.id, d.id ";
+        return jdbcTemplate.query(sqlQuery, this::createFilm, String.format("%%%s%%", parameter));
+    }
+
+    @Override
+    public List<Film> findFilmsByDirector(String parameter) {
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, COUNT(l.user_id) AS likes, " +
+                "m.id AS mpa_id, " +
+                "m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name, d.id AS director_id, d.name AS director_name " +
+                "FROM films f " +
+                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
+                "LEFT JOIN likes AS l ON f.id = l.film_id " +
+                "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
+                "LEFT JOIN genres g ON fg.genre_id = g.id " +
+                "LEFT JOIN film_directors fd ON f.id = fd.film_id " +
+                "LEFT JOIN directors d ON fd.director_id = d.id " + "WHERE LOWER(d.name) LIKE LOWER(?)" +
+                "GROUP BY f.id, m.id, g.id, d.id ";
+        return jdbcTemplate.query(sqlQuery, this::createFilm, String.format("%%%s%%", parameter));
+    }
+
     private List<Film> createFilm(ResultSet rs) throws SQLException {
         ResultSetExtractor<List<Film>> resultSetExtractor = rs1 -> {
             Map<Long, Film> list = new LinkedHashMap<>();
@@ -237,6 +270,7 @@ public class FilmDbStorage implements FilmStorage {
                                     .id(rs1.getLong("mpa_id"))
                                     .name(rs1.getString("mpa_name"))
                                     .build())
+                            .likes(new HashSet<>())
                             .genres(new ArrayList<>())
                             .directors(new ArrayList<>())
                             .build();
