@@ -93,6 +93,11 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.query(sqlQuery, this::createUser, id, otherId);
     }
 
+    @Override
+    public void remove(Long userId) {
+        jdbcTemplate.update("DELETE FROM users WHERE id = ?", userId);
+    }
+
     private User createUser(ResultSet rs, int rowNum) throws SQLException {
         return User.builder()
                 .id(rs.getLong("id"))

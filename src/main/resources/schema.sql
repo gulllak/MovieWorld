@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS reviews (
 );
 
 CREATE TABLE IF NOT EXISTS film_directors (
-                      film_id bigint references films(id),
+                      film_id bigint references films(id) on delete cascade,
                       director_id bigint references directors(id) on delete cascade,
                       primary key (film_id, director_id)
 );
@@ -66,20 +66,20 @@ CREATE TABLE IF NOT EXISTS genres (
 );
 
 CREATE TABLE IF NOT EXISTS film_genres (
-                        film_id bigint references films(id),
-                        genre_id bigint references genres(id),
+                        film_id bigint references films(id) on delete cascade,
+                        genre_id bigint references genres(id) on delete cascade,
                         primary key (film_id, genre_id)
 );
 
 CREATE TABLE IF NOT EXISTS likes (
-                         user_id bigint references users(id),
-                         film_id bigint references films(id),
+                         user_id bigint references users(id) on delete cascade,
+                         film_id bigint references films(id) on delete cascade,
                          primary key (user_id, film_id)
 
 );
 
 CREATE TABLE IF NOT EXISTS friends (
-                           user_id bigint references users(id),
-                           friend_id bigint references users(id),
+                           user_id bigint references users(id) on delete cascade,
+                           friend_id bigint references users(id) on delete cascade,
                            primary key (user_id, friend_id)
 );

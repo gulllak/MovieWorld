@@ -80,4 +80,11 @@ public class FilmController {
         return filmService.getDirectorFilmsSorted(directorId, sortType);
     }
 
+
+    @DeleteMapping("/{filmId}")
+    public ResponseEntity<HttpStatus> remove(@PathVariable(value = "filmId") Long filmId) {
+        filmService.remove(filmId);
+
+        return ResponseEntity.ok(HttpStatus.OK);
+    }
 }

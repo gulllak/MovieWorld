@@ -206,6 +206,11 @@ public class FilmDbStorage implements FilmStorage {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public void remove(Long filmId) {
+        jdbcTemplate.update("DELETE FROM films WHERE id = ?", filmId);
+    }
+
     private List<Film> createFilm(ResultSet rs) throws SQLException {
         ResultSetExtractor<List<Film>> resultSetExtractor = rs1 -> {
             Map<Long, Film> list = new LinkedHashMap<>();

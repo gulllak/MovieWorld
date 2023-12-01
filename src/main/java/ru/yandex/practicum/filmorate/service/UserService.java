@@ -68,4 +68,8 @@ public class UserService {
     public List<Film> getRecommendations(Long id) {
         return filmStorage.getRecommendations(id);
     }
+
+    public void remove(Long userId) {
+        userStorage.remove(userId);
+    }
 }

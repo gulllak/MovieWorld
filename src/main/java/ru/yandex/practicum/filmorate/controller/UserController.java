@@ -77,4 +77,11 @@ public class UserController {
     public List<Film> getRecommendations(@PathVariable(value = "id") Long id) {
         return userService.getRecommendations(id);
     }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<HttpStatus> remove(@PathVariable(value = "userId") Long userId) {
+        userService.remove(userId);
+
+        return ResponseEntity.ok(HttpStatus.OK);
+    }
 }

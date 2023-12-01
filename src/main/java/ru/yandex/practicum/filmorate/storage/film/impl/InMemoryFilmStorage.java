@@ -94,6 +94,11 @@ public class InMemoryFilmStorage implements FilmStorage {
         return null;
     }
 
+    @Override
+    public void remove(Long filmId) {
+
+    }
+
     private Long getNextId() {
         return ++id;
     }

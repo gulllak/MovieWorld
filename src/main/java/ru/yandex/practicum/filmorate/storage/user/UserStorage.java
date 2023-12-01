@@ -21,4 +21,6 @@ public interface UserStorage {
     void removeFriend(Long id, Long friendId);
 
     List<User> getCommonFriends(Long id, Long otherId);
+
+    void remove(Long userId);
 }
