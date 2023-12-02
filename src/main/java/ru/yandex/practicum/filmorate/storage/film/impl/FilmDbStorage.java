@@ -250,7 +250,7 @@ public class FilmDbStorage implements FilmStorage {
             ResultSetMetaData metaData = rs.getMetaData();
             boolean feelLikes = false;
             for (int i = 1; i <= metaData.getColumnCount(); i++) {
-                if ("USER_ID".equals(metaData.getColumnName(i))) {
+                if ("user_who_liked".equalsIgnoreCase(metaData.getColumnLabel(i))) {
                     feelLikes = true;
                 }
             }
