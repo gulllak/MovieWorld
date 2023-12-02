@@ -18,7 +18,7 @@ public class ReviewLikesDbStorage implements ReviewLikesStorage {
 
     @Override
     public void addLike(Long id, Long userId) {
-        Map<Boolean, Boolean> afterCheck = checkData(userId);
+        Map<Boolean, Boolean> afterCheck = checkData(id, userId);
         if (afterCheck.containsKey(false)) {
             String sqlQuery = "INSERT INTO review_likes (review_id, user_id, is_like) VALUES (?, ?, ?)";
             jdbcTemplate.update(sqlQuery,id, userId, true);
@@ -31,7 +31,7 @@ public class ReviewLikesDbStorage implements ReviewLikesStorage {
 
     @Override
     public void removeLike(Long id, Long userId) {
-        Map<Boolean, Boolean> afterCheck = checkData(userId);
+        Map<Boolean, Boolean> afterCheck = checkData(id, userId);
         if (afterCheck.containsKey(true) && afterCheck.get(true).equals(true)) {
             String sqlQuery = "DELETE FROM review_likes WHERE user_id = ? AND is_like = ?";
             jdbcTemplate.update(sqlQuery, userId, true);
@@ -42,7 +42,7 @@ public class ReviewLikesDbStorage implements ReviewLikesStorage {
 
     @Override
     public void addDislike(Long id, Long userId) {
-        Map<Boolean, Boolean> afterCheck = checkData(userId);
+        Map<Boolean, Boolean> afterCheck = checkData(id, userId);
         if (afterCheck.containsKey(false)) {
             String sqlQuery = "INSERT INTO review_likes (review_id, user_id, is_like) VALUES (?, ?, ?)";
             jdbcTemplate.update(sqlQuery, id, userId, false);
@@ -55,7 +55,7 @@ public class ReviewLikesDbStorage implements ReviewLikesStorage {
 
     @Override
     public void deleteDislike(Long id, Long userId) {
-        Map<Boolean, Boolean> afterCheck = checkData(userId);
+        Map<Boolean, Boolean> afterCheck = checkData(id, userId);
         if (afterCheck.containsKey(true) && afterCheck.get(true).equals(false)) {
             String sqlQuery = "DELETE FROM review_likes WHERE user_id = ? AND is_like = ?";
             jdbcTemplate.update(sqlQuery, userId, false);
@@ -65,9 +65,9 @@ public class ReviewLikesDbStorage implements ReviewLikesStorage {
     }
 
     @Override
-    public HashMap<Boolean, Boolean> checkData(Long userId) {
-        String sqlQuery = "SELECT is_like FROM review_likes WHERE user_id = ?";
-        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(sqlQuery, userId);
+    public HashMap<Boolean, Boolean> checkData(Long reviewId, Long userId) {
+        String sqlQuery = "SELECT is_like FROM review_likes WHERE review_id = ? AND user_id = ?";
+        SqlRowSet sqlRowSet = jdbcTemplate.queryForRowSet(sqlQuery, reviewId,  userId);
         Map<Boolean, Boolean> check = new HashMap<>();
         if (sqlRowSet.next() == false) {
             check.put(false, null);

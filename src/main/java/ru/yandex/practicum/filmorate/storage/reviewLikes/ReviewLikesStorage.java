@@ -11,5 +11,5 @@ public interface ReviewLikesStorage {
 
     void deleteDislike(Long id, Long userId);
 
-    HashMap<Boolean, Boolean> checkData(Long userId);
+    HashMap<Boolean, Boolean> checkData(Long reviewId, Long userId);
 }
