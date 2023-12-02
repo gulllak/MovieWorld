@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.film.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
+import ru.yandex.practicum.filmorate.storage.reviewLikes.ReviewLikesStorage;
 import ru.yandex.practicum.filmorate.storage.user.impl.UserDbStorage;
 
 import java.sql.PreparedStatement;
@@ -26,6 +27,7 @@ public class ReviewDbStorage implements ReviewStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmDbStorage filmStorage;
     private final UserDbStorage userStorage;
+    private final ReviewLikesStorage reviewLikesStorage;
 
     @Override
     public Review create(Review review) {
@@ -97,6 +99,7 @@ public class ReviewDbStorage implements ReviewStorage {
     @Override
     public void addLike(Long id, Long userId) {
         userStorage.getUserById(userId);
+        reviewLikesStorage.addLike(id, userId);
         Integer useful = getById(id).getUseful() + 1;
         String sqlQuery = "UPDATE reviews SET useful = ? WHERE id = ?";
         jdbcTemplate.update(sqlQuery, useful, id);
@@ -105,6 +108,7 @@ public class ReviewDbStorage implements ReviewStorage {
     @Override
     public void addDislike(Long id, Long userId) {
         userStorage.getUserById(userId);
+        reviewLikesStorage.addDislike(id, userId);
         Integer useful = getById(id).getUseful() - 1;
         String sqlQuery = "UPDATE reviews SET useful = ? WHERE id = ?";
         jdbcTemplate.update(sqlQuery, useful, id);
@@ -113,6 +117,7 @@ public class ReviewDbStorage implements ReviewStorage {
     @Override
     public void deleteLike(Long id, Long userId) {
         userStorage.getUserById(userId);
+        reviewLikesStorage.removeLike(id, userId);
         Integer useful = getById(id).getUseful() - 1;
         String sqlQuery = "UPDATE reviews SET useful = ? WHERE id = ?";
         jdbcTemplate.update(sqlQuery, useful, id);
@@ -121,6 +126,7 @@ public class ReviewDbStorage implements ReviewStorage {
     @Override
     public void deleteDislike(Long id, Long userId) {
         userStorage.getUserById(userId);
+        reviewLikesStorage.deleteDislike(id, userId);
         Integer useful = getById(id).getUseful() + 1;
         String sqlQuery = "UPDATE reviews SET useful = ? WHERE id = ?";
         jdbcTemplate.update(sqlQuery, useful, id);
