@@ -20,6 +20,7 @@ import ru.yandex.practicum.filmorate.storage.user.impl.UserDbStorage;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -214,50 +215,68 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findFilmsByTitle(String parameter) {
-        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, COUNT(l.user_id) AS likes, m.id AS mpa_id, " +
-                "m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name, d.id AS director_id, d.name AS director_name " +
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, " +
+                "m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name, d.id AS director_id, d.name AS director_name, l.user_id AS user_who_liked " +
                 "FROM films f " +
                 "LEFT JOIN mpa m ON f.mpa_id = m.id " +
-                "LEFT JOIN likes AS l ON f.id = l.film_id " +
                 "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
                 "LEFT JOIN genres g ON fg.genre_id = g.id " +
                 "LEFT JOIN film_directors fd ON f.id = fd.film_id " +
                 "LEFT JOIN directors d ON fd.director_id = d.id " +
+                "LEFT JOIN likes AS l ON f.id = l.film_id " +
                 "WHERE LOWER(f.name) LIKE LOWER(?)" +
-                "GROUP BY f.id, m.id, g.id, d.id ";
+                "GROUP BY f.id, l.user_id";
         return jdbcTemplate.query(sqlQuery, this::createFilm, String.format("%%%s%%", parameter));
     }
 
     @Override
     public List<Film> findFilmsByDirector(String parameter) {
-        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, COUNT(l.user_id) AS likes, " +
-                "m.id AS mpa_id, " +
-                "m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name, d.id AS director_id, d.name AS director_name " +
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, " +
+                "m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name, d.id AS director_id, d.name AS director_name, l.user_id AS user_who_liked " +
                 "FROM films f " +
                 "LEFT JOIN mpa m ON f.mpa_id = m.id " +
-                "LEFT JOIN likes AS l ON f.id = l.film_id " +
                 "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
                 "LEFT JOIN genres g ON fg.genre_id = g.id " +
                 "LEFT JOIN film_directors fd ON f.id = fd.film_id " +
-                "LEFT JOIN directors d ON fd.director_id = d.id " + "WHERE LOWER(d.name) LIKE LOWER(?)" +
-                "GROUP BY f.id, m.id, g.id, d.id ";
+                "LEFT JOIN directors d ON fd.director_id = d.id " +
+                "LEFT JOIN likes AS l ON f.id = l.film_id " +
+                "WHERE LOWER(d.name) LIKE LOWER(?)" +
+                "GROUP BY f.id, l.user_id";
         return jdbcTemplate.query(sqlQuery, this::createFilm, String.format("%%%s%%", parameter));
     }
 
     private List<Film> createFilm(ResultSet rs) throws SQLException {
         ResultSetExtractor<List<Film>> resultSetExtractor = rs1 -> {
+            ResultSetMetaData metaData = rs.getMetaData();
+            boolean feelLikes = false;
+            for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                if ("USER_ID".equals(metaData.getColumnName(i))) {
+                    feelLikes = true;
+                }
+            }
             Map<Long, Film> list = new LinkedHashMap<>();
             while (rs1.next()) {
                 if (list.containsKey(rs1.getLong("id"))) {
-                    list.get(rs1.getLong("id")).getGenres().add(Genre.builder()
-                            .id(rs1.getLong("genre_id"))
-                            .name(rs1.getString("genre_name"))
-                            .build());
+                    if (rs1.getLong("genre_id") != 0) {
+                        list.get(rs1.getLong("id")).getGenres().add(Genre.builder()
+                                .id(rs1.getLong("genre_id"))
+                                .name(rs1.getString("genre_name"))
+                                .build());
+                    }
+
                     if (rs1.getLong("director_id") != 0) {
                         list.get(rs1.getLong("id")).getDirectors().add(Director.builder()
                                 .id(rs1.getLong("director_id"))
                                 .name(rs1.getString("director_name"))
                                 .build());
+                    }
+
+                    if (feelLikes) {
+                        if (rs1.getLong("user_who_liked") != 0) {
+                            list.get(rs1.getLong("id"))
+                                    .getLikes()
+                                    .add(rs1.getLong("user_who_liked"));
+                        }
                     }
                 } else {
                     Film film = Film.builder()
@@ -271,8 +290,8 @@ public class FilmDbStorage implements FilmStorage {
                                     .name(rs1.getString("mpa_name"))
                                     .build())
                             .likes(new HashSet<>())
-                            .genres(new ArrayList<>())
-                            .directors(new ArrayList<>())
+                            .genres(new HashSet<>())
+                            .directors(new HashSet<>())
                             .build();
 
                     if (rs1.getLong("genre_id") != 0) {
@@ -287,6 +306,12 @@ public class FilmDbStorage implements FilmStorage {
                                 .id(rs1.getLong("director_id"))
                                 .name(rs1.getString("director_name"))
                                 .build());
+                    }
+
+                    if (feelLikes) {
+                        if (rs1.getLong("user_who_liked") != 0) {
+                            film.getLikes().add(rs1.getLong("user_who_liked"));
+                        }
                     }
 
                     list.put(film.getId(), film);

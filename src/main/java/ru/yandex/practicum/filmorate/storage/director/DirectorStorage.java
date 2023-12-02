@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage.director;
 import ru.yandex.practicum.filmorate.model.Director;
 
 import java.util.List;
+import java.util.Set;
 
 public interface DirectorStorage {
     List<Director> findAll();
@@ -15,5 +16,5 @@ public interface DirectorStorage {
 
     void remove(Long id);
 
-    void setFilmsDirectors(Long filmId, List<Director> directors);
+    void setFilmsDirectors(Long filmId, Set<Director> directors);
 }

@@ -67,7 +67,7 @@ public class DirectorDbStorage implements DirectorStorage {
     }
 
     @Override
-    public void setFilmsDirectors(Long filmId, List<Director> directors) {
+    public void setFilmsDirectors(Long filmId, Set<Director> directors) {
         String sqlQueryCleanFilmsDirectors = "DELETE FROM film_directors WHERE film_id = ?";
         String sqlQuerySetDirectors = "INSERT INTO film_directors (film_id, director_id) VALUES (?, ?)";
         jdbcTemplate.update(sqlQueryCleanFilmsDirectors, filmId);
