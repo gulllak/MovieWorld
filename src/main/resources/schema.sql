@@ -3,6 +3,7 @@ DROP TABLE if exists likes cascade;
 DROP TABLE if exists film_genres cascade;
 DROP TABLE if exists mpa cascade;
 DROP TABLE if exists genres cascade;
+DROP TABLE if exists review_likes cascade;
 DROP TABLE if exists reviews cascade;
 DROP TABLE if exists film_directors cascade;
 DROP TABLE if exists directors cascade;
@@ -43,6 +44,12 @@ CREATE TABLE IF NOT EXISTS reviews (
                        user_id bigint references users(id),
                        film_id bigint references films(id),
                        useful integer default 0
+);
+
+CREATE TABLE IF NOT EXISTS review_likes (
+    review_id bigint references reviews(id) on delete cascade,
+    user_id bigint references users(id),
+    primary key (review_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS film_directors (
