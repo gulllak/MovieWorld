@@ -17,9 +17,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static java.lang.Integer.compare;
 
 @Component
 @RequiredArgsConstructor
@@ -76,41 +73,51 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public List<Review> getReviewsByFilmId(Long id, Integer count) {
-        String sqlQuery = "SELECT * FROM reviews";
-        List<Review> reviews = jdbcTemplate.query(sqlQuery, this::createReview);
+        StringBuilder sqlQuery = new StringBuilder();
+        sqlQuery.append("SELECT * FROM reviews ");
+        List<Review> reviews;
         if (id != null) {
-            return reviews.stream()
-                    .filter(review -> review.getFilmId() == id)
-                    .sorted((p0, p1) -> {
-                        int comp = compare(p0.getUseful(), p1.getUseful());
-                        return -1 * comp;
-                    }).limit(count)
-                    .collect(Collectors.toList());
+            sqlQuery.append("WHERE film_id = ? ")
+                    .append("ORDER BY useful DESC ")
+                    .append("LIMIT ?");
+
+            reviews = jdbcTemplate.query(sqlQuery.toString(), this::createReview, id, count);
         } else {
-            return reviews.stream()
-                    .sorted((p0, p1) -> {
-                        int comp = compare(p0.getUseful(), p1.getUseful());
-                        return -1 * comp;
-                    }).limit(count)
-                    .collect(Collectors.toList());
+            sqlQuery.append("ORDER BY useful DESC ")
+                    .append("LIMIT ?");
+
+            reviews = jdbcTemplate.query(sqlQuery.toString(), this::createReview, count);
         }
+        return reviews;
     }
 
     @Override
     public void addLike(Long id, Long userId) {
         userStorage.getUserById(userId);
-        reviewLikesStorage.addLike(id, userId);
-        Integer useful = getById(id).getUseful() + 1;
-        String sqlQuery = "UPDATE reviews SET useful = ? WHERE id = ?";
+        boolean isChangeLike = reviewLikesStorage.addLike(id, userId);
+        String sqlQuery;
+        int useful;
+        if (!isChangeLike) {
+            useful = getById(id).getUseful() + 1;
+        } else {
+            useful = getById(id).getUseful() + 2;
+        }
+        sqlQuery = "UPDATE reviews SET useful = ? WHERE id = ?";
         jdbcTemplate.update(sqlQuery, useful, id);
     }
 
     @Override
     public void addDislike(Long id, Long userId) {
         userStorage.getUserById(userId);
-        reviewLikesStorage.addDislike(id, userId);
-        Integer useful = getById(id).getUseful() - 1;
-        String sqlQuery = "UPDATE reviews SET useful = ? WHERE id = ?";
+        boolean isChangeLike = reviewLikesStorage.addDislike(id, userId);
+        String sqlQuery;
+        int useful;
+        if (!isChangeLike) {
+            useful = getById(id).getUseful() - 1;
+        } else {
+            useful = getById(id).getUseful() - 2;
+        }
+        sqlQuery = "UPDATE reviews SET useful = ? WHERE id = ?";
         jdbcTemplate.update(sqlQuery, useful, id);
     }
 
@@ -126,7 +133,7 @@ public class ReviewDbStorage implements ReviewStorage {
     @Override
     public void deleteDislike(Long id, Long userId) {
         userStorage.getUserById(userId);
-        reviewLikesStorage.deleteDislike(id, userId);
+        reviewLikesStorage.removeDislike(id, userId);
         Integer useful = getById(id).getUseful() + 1;
         String sqlQuery = "UPDATE reviews SET useful = ? WHERE id = ?";
         jdbcTemplate.update(sqlQuery, useful, id);
