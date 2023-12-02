@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.reviewLikes;
 
 import java.util.HashMap;
-import java.util.List;
 
 public interface ReviewLikesStorage {
     void addLike(Long id, Long userId);
