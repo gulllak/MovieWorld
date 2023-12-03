@@ -18,6 +18,7 @@ import ru.yandex.practicum.filmorate.storage.user.impl.UserDbStorage;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -76,8 +77,9 @@ class FilmStorageTest {
             .releaseDate(LocalDate.of(2023, 7, 19))
             .duration(180)
             .mpa(mpa1)
-            .genres(List.of(genre1))
-            .directors(List.of())
+            .likes(Set.of())
+            .genres(Set.of(genre1))
+            .directors(Set.of())
             .build();
 
     Film film1 = Film.builder()
@@ -88,15 +90,16 @@ class FilmStorageTest {
             .releaseDate(LocalDate.of(1994, 6, 23))
             .duration(142)
             .mpa(mpa2)
-            .genres(List.of(genre2))
-            .directors(List.of())
+            .likes(Set.of())
+            .genres(Set.of(genre2))
+            .directors(Set.of())
             .build();
 
     @Test
     public void createFilm() {
         filmStorage.create(film);
         film.setMpa(mpa1Full);
-        film.setGenres(List.of(genre1Full));
+        film.setGenres(Set.of(genre1Full));
         Film getFilm = filmStorage.getFilmById(1L);
 
         assertThat(getFilm)
@@ -107,11 +110,11 @@ class FilmStorageTest {
 
     @Test
     public void createFilmWithSeveralGenres() {
-        film.setGenres(List.of(genre1, genre2));
+        film.setGenres(Set.of(genre1, genre2));
         filmStorage.create(film);
 
         film.setMpa(mpa1Full);
-        film.setGenres(List.of(genre2Full, genre1Full));
+        film.setGenres(Set.of(genre2Full, genre1Full));
         Film getFilm = filmStorage.getFilmById(1L);
 
         assertThat(getFilm)
@@ -129,8 +132,8 @@ class FilmStorageTest {
 
         film.setMpa(mpa1Full);
         film1.setMpa(mpa2Full);
-        film1.setGenres(List.of(genre2Full));
-        film.setGenres(List.of(genre1Full));
+        film1.setGenres(Set.of(genre2Full));
+        film.setGenres(Set.of(genre1Full));
 
         Assertions.assertEquals(List.of(film, film1), getFilms);
     }
@@ -139,7 +142,7 @@ class FilmStorageTest {
     public void getFilmById() {
         filmStorage.create(film);
         film.setMpa(mpa1Full);
-        film.setGenres(List.of(genre1Full));
+        film.setGenres(Set.of(genre1Full));
 
         Film getFilm = filmStorage.getFilmById(1L);
         Assertions.assertEquals(film, getFilm);
@@ -161,7 +164,7 @@ class FilmStorageTest {
         filmStorage.update(film);
         Film getFilm = filmStorage.getFilmById(1L);
         film.setMpa(mpa1Full);
-        film.setGenres(List.of(genre1Full));
+        film.setGenres(Set.of(genre1Full));
 
         Assertions.assertEquals(film, getFilm);
     }
