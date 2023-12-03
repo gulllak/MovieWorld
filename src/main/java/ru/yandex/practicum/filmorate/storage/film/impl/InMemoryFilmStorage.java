@@ -99,6 +99,16 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     }
 
+    @Override
+    public List<Film> findFilmsByDirector(String parameter) {
+        return null;
+    }
+
+    @Override
+    public List<Film> findFilmsByTitle(String parameter) {
+        return null;
+    }
+
     private Long getNextId() {
         return ++id;
     }

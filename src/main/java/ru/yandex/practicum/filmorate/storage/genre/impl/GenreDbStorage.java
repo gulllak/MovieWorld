@@ -41,7 +41,7 @@ public class GenreDbStorage implements GenreStorage {
     }
 
     @Override
-    public void setFilmsGenres(Long filmId, List<Genre> genres) {
+    public void setFilmsGenres(Long filmId, Set<Genre> genres) {
         String sqlQueryCleanFilmsGenres = "DELETE FROM film_genres WHERE film_id = ?";
         String sqlQuerySetGenres = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
         jdbcTemplate.update(sqlQueryCleanFilmsGenres, filmId);

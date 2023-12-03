@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +10,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Set;
 
 @Data
@@ -25,10 +25,10 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть положительной")
     private int duration;
     private Mpa mpa;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnore
     private Set<Long> likes;
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<Genre> genres;
+    private Set<Genre> genres;
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<Director> directors;
+    private Set<Director> directors;
 }
