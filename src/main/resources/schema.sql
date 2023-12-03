@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS reviews (
 CREATE TABLE IF NOT EXISTS review_likes (
     review_id bigint references reviews(id) on delete cascade,
     user_id bigint references users(id),
+    is_like boolean,
     primary key (review_id, user_id)
 );
 
