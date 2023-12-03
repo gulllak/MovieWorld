@@ -19,7 +19,7 @@ public interface ReviewStorage {
 
     void addDislike(Long id, Long userId);
 
-    void deleteLike(Long id, Long userId);
+    void removeLike(Long id, Long userId);
 
-    void deleteDislike(Long id, Long userId);
+    void removeDislike(Long id, Long userId);
 }

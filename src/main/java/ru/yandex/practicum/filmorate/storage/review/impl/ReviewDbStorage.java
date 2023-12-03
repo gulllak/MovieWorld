@@ -29,9 +29,6 @@ public class ReviewDbStorage implements ReviewStorage {
     @Override
     public Review create(Review review) {
         checkDataExist(review.getUserId(), review.getFilmId());
-        if (review.getUseful() == null) {
-            review.setUseful(0);
-        }
         String sqlQuery = "INSERT INTO reviews (is_positive, content, user_id, film_id, useful) " +
                 "VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -122,7 +119,7 @@ public class ReviewDbStorage implements ReviewStorage {
     }
 
     @Override
-    public void deleteLike(Long id, Long userId) {
+    public void removeLike(Long id, Long userId) {
         userStorage.getUserById(userId);
         reviewLikesStorage.removeLike(id, userId);
         Integer useful = getById(id).getUseful() - 1;
@@ -131,7 +128,7 @@ public class ReviewDbStorage implements ReviewStorage {
     }
 
     @Override
-    public void deleteDislike(Long id, Long userId) {
+    public void removeDislike(Long id, Long userId) {
         userStorage.getUserById(userId);
         reviewLikesStorage.removeDislike(id, userId);
         Integer useful = getById(id).getUseful() + 1;

@@ -43,11 +43,11 @@ public class ReviewService {
         reviewStorage.addDislike(id, userId);
     }
 
-    public void deleteLike(Long id, Long userId) {
-        reviewStorage.deleteLike(id, userId);
+    public void removeLike(Long id, Long userId) {
+        reviewStorage.removeLike(id, userId);
     }
 
-    public void deleteDislike(Long id, Long userId) {
-        reviewStorage.deleteDislike(id, userId);
+    public void removeDislike(Long id, Long userId) {
+        reviewStorage.removeDislike(id, userId);
     }
 }

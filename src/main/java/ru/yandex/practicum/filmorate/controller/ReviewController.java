@@ -62,17 +62,17 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public ResponseEntity<HttpStatus> deleteLike(@PathVariable(value = "id") Long id,
+    public ResponseEntity<HttpStatus> removeLike(@PathVariable(value = "id") Long id,
                                               @PathVariable(value = "userId") Long userId) {
-        reviewService.deleteLike(id, userId);
+        reviewService.removeLike(id, userId);
 
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}/dislike/{userId}")
-    public ResponseEntity<HttpStatus> deleteDislike(@PathVariable(value = "id") Long id,
+    public ResponseEntity<HttpStatus> removeDislike(@PathVariable(value = "id") Long id,
                                                  @PathVariable(value = "userId") Long userId) {
-        reviewService.deleteDislike(id, userId);
+        reviewService.removeDislike(id, userId);
 
         return ResponseEntity.ok(HttpStatus.OK);
     }
