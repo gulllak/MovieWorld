@@ -61,8 +61,8 @@ CREATE TABLE IF NOT EXISTS film_directors (
 
 CREATE TABLE IF NOT EXISTS events (
                       id bigint PRIMARY KEY auto_increment,
-                      user_id bigint references users(id),
-                      entity_id bigint references users(id),
+                      user_id bigint references users(id) on delete cascade ,
+                      entity_id bigint,
                       event_type varchar(255),
                       operation varchar(255),
                       event_time timestamp

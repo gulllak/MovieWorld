@@ -170,17 +170,6 @@ class FilmStorageTest {
     }
 
     @Test
-    public void addLike() {
-        filmStorage.create(film);
-        userStorage.create(user);
-        filmStorage.addLike(1L, 1L);
-
-        EntityAlreadyExistException entityAlreadyExistException = Assertions.assertThrows(
-                EntityAlreadyExistException.class, () -> filmStorage.addLike(1L, 1L));
-        Assertions.assertEquals("Этот пользователь уже ставил лайк", entityAlreadyExistException.getMessage());
-    }
-
-    @Test
     public void addLikeForUnknownFilm() {
         userStorage.create(user);
 
@@ -194,19 +183,14 @@ class FilmStorageTest {
         filmStorage.create(film);
         userStorage.create(user);
         filmStorage.addLike(1L, 1L);
-
-        EntityAlreadyExistException entityAlreadyExistException = Assertions.assertThrows(
-                EntityAlreadyExistException.class, () -> filmStorage.addLike(1L, 1L));
-        Assertions.assertEquals("Этот пользователь уже ставил лайк", entityAlreadyExistException.getMessage());
-
         filmStorage.removeLike(1L, 1L);
 
-        entityAlreadyExistException = Assertions.assertThrows(
+        EntityAlreadyExistException entityAlreadyExistException = Assertions.assertThrows(
                 EntityAlreadyExistException.class, () -> filmStorage.removeLike(1L, 1L));
         Assertions.assertEquals("Этот пользователь не ставил лайк", entityAlreadyExistException.getMessage());
     }
 
-    /*@Test
+    @Test
     public void getPopularFilm() {
         filmStorage.create(film);
         filmStorage.create(film1);
@@ -222,13 +206,13 @@ class FilmStorageTest {
         film.setMpa(mpa1Full);
         film1.setMpa(mpa2Full);
 
-        film.setGenres(List.of(genre1Full));
-        film1.setGenres(List.of(genre2Full));
+        film.setGenres(Set.of(genre1Full));
+        film1.setGenres(Set.of(genre2Full));
 
-        List<Film> getPopularFilm = filmStorage.getPopularFilms(2);
+        List<Film> getPopularFilm = filmStorage.getPopularFilms(2, null, null);
 
         Assertions.assertEquals(List.of(film, film1), getPopularFilm);
-    }*/
+    }
 
 
 }

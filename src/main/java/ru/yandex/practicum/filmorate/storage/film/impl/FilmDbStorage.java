@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.film.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -15,7 +16,7 @@ import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
-import ru.yandex.practicum.filmorate.storage.user.impl.UserDbStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -34,6 +35,7 @@ import static java.lang.Integer.compare;
 
 @Component
 @RequiredArgsConstructor
+@Primary
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
 
@@ -43,7 +45,7 @@ public class FilmDbStorage implements FilmStorage {
 
     private final LikeStorage likeStorage;
 
-    private final UserDbStorage userStorage;
+    private final UserStorage userStorage;
 
     @Override
     public List<Film> findAll() {
@@ -110,6 +112,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public void addLike(Long filmId, Long userId) {
         getFilmById(filmId);
+        userStorage.getUserById(userId);
 
         likeStorage.addLike(filmId, userId);
     }
