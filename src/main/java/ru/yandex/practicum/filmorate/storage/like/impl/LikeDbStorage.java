@@ -25,11 +25,11 @@ public class LikeDbStorage implements LikeStorage {
     public void addLike(Long filmId, Long userId) {
         if (likeExists(filmId, userId)) {
             eventStorage.addEvent(userId, filmId, EventType.LIKE, Operation.ADD);
-            return;
+        } else {
+            String sqlQuery = "INSERT INTO likes (user_id, film_id) VALUES (?, ?)";
+            jdbcTemplate.update(sqlQuery, userId, filmId);
+            eventStorage.addEvent(userId, filmId, EventType.LIKE, Operation.ADD);
         }
-        String sqlQuery = "INSERT INTO likes (user_id, film_id) VALUES (?, ?)";
-        jdbcTemplate.update(sqlQuery, userId, filmId);
-        eventStorage.addEvent(userId, filmId, EventType.LIKE, Operation.ADD);
     }
 
     @Override
