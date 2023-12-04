@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -83,5 +84,10 @@ public class UserController {
         userService.remove(userId);
 
         return ResponseEntity.ok(HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/feed")
+    public List<Event> getFeedByUserId(@PathVariable("id") Long id) {
+        return userService.getFeedByUserId(id);
     }
 }

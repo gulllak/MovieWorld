@@ -7,10 +7,13 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.storage.film.impl.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.reviewLikes.ReviewLikesStorage;
-import ru.yandex.practicum.filmorate.storage.user.impl.UserDbStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.util.EventType;
+import ru.yandex.practicum.filmorate.util.Operation;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,9 +25,11 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ReviewDbStorage implements ReviewStorage {
     private final JdbcTemplate jdbcTemplate;
-    private final FilmDbStorage filmStorage;
-    private final UserDbStorage userStorage;
+    private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
     private final ReviewLikesStorage reviewLikesStorage;
+
+    private final EventStorage eventStorage;
 
     @Override
     public Review create(Review review) {
@@ -42,7 +47,9 @@ public class ReviewDbStorage implements ReviewStorage {
             stmt.setInt(5, review.getUseful());
             return stmt;
         }, keyHolder);
-        return getById(Objects.requireNonNull(keyHolder.getKey()).longValue());
+        Long reviewId = Objects.requireNonNull(keyHolder.getKey()).longValue();
+        eventStorage.addEvent(review.getUserId(), reviewId, EventType.REVIEW, Operation.ADD);
+        return getById(reviewId);
     }
 
     @Override
@@ -50,12 +57,16 @@ public class ReviewDbStorage implements ReviewStorage {
         checkDataExist(review.getUserId(), review.getFilmId());
         String sqlQuery = "UPDATE reviews SET is_positive = ?, content = ? WHERE id =?";
         jdbcTemplate.update(sqlQuery, review.getIsPositive(), review.getContent(), review.getReviewId());
-        return getById(review.getReviewId());
+        Review updatedReview = getById(review.getReviewId());
+        eventStorage.addEvent(updatedReview.getUserId(), updatedReview.getReviewId(), EventType.REVIEW, Operation.UPDATE);
+        return updatedReview;
     }
 
     @Override
     public void removeReview(Long id) {
+        Review review = getById(id);
         jdbcTemplate.update("DELETE FROM reviews WHERE id = ?", id);
+        eventStorage.addEvent(review.getUserId(),review.getReviewId(), EventType.REVIEW, Operation.REMOVE);
     }
 
     @Override
@@ -101,6 +112,7 @@ public class ReviewDbStorage implements ReviewStorage {
         }
         sqlQuery = "UPDATE reviews SET useful = ? WHERE id = ?";
         jdbcTemplate.update(sqlQuery, useful, id);
+
     }
 
     @Override

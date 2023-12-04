@@ -5,7 +5,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
+import ru.yandex.practicum.filmorate.util.EventType;
+import ru.yandex.practicum.filmorate.util.Operation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,13 +19,17 @@ import java.util.List;
 public class LikeDbStorage implements LikeStorage {
     private final JdbcTemplate jdbcTemplate;
 
+    private final EventStorage eventStorage;
+
     @Override
     public void addLike(Long filmId, Long userId) {
         if (likeExists(filmId, userId)) {
-            throw new EntityAlreadyExistException("Этот пользователь уже ставил лайк");
+            eventStorage.addEvent(userId, filmId, EventType.LIKE, Operation.ADD);
+            return;
         }
         String sqlQuery = "INSERT INTO likes (user_id, film_id) VALUES (?, ?)";
         jdbcTemplate.update(sqlQuery, userId, filmId);
+        eventStorage.addEvent(userId, filmId, EventType.LIKE, Operation.ADD);
     }
 
     @Override
@@ -32,6 +39,8 @@ public class LikeDbStorage implements LikeStorage {
             throw new EntityAlreadyExistException("Этот пользователь не ставил лайк");
         }
         jdbcTemplate.update(sqlQuery, userId, filmId);
+        eventStorage.addEvent(userId, filmId, EventType.LIKE, Operation.REMOVE);
+
     }
 
     @Override
