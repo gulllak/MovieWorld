@@ -3,8 +3,6 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import ru.yandex.practicum.filmorate.util.EventType;
-import ru.yandex.practicum.filmorate.util.Operation;
 
 @Data
 @Builder

@@ -1,24 +1,28 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static java.lang.Integer.compare;
 
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
 
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage) {
+    private final UserStorage userStorage;
+
+    private final LikeStorage likeStorage;
+
+    public FilmService(FilmStorage filmStorage,
+                       UserStorage userStorage,
+                       LikeStorage likeStorage) {
         this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
+        this.likeStorage = likeStorage;
     }
 
     public List<Film> findAll() {
@@ -50,7 +54,15 @@ public class FilmService {
     }
 
     public List<Film> getCommonFilms(Long userId, Long friendId) {
-        return filmStorage.getCommonFilms(userId, friendId);
+        userStorage.getUserById(userId);
+        userStorage.getUserById(friendId);
+
+        List<Film> commonFilms = new ArrayList<>();
+        List<Long> sdfds = likeStorage.getCommonFilmIds(userId, friendId);
+        for (Long id : sdfds) {
+            commonFilms.add(filmStorage.getFilmById(id));
+        }
+        return commonFilms;
     }
 
     public List<Film> getDirectorFilmsSorted(Long directorId, String sortType) {
@@ -70,18 +82,6 @@ public class FilmService {
     }
 
     public List<Film> findFilms(String findingSubstring, List<String> parameters) {
-        Set<Film> foundFilms = new HashSet<>();
-        if (parameters.contains("title")) {
-            foundFilms.addAll(filmStorage.findFilmsByTitle(findingSubstring));
-        }
-        if (parameters.contains("director")) {
-            foundFilms.addAll(filmStorage.findFilmsByDirector(findingSubstring));
-        }
-        return foundFilms.stream()
-                .sorted((p0, p1) -> {
-                    int comp = compare(p0.getLikes().size(), p1.getLikes().size());
-                    return -1 * comp;
-                })
-                .collect(Collectors.toList());
+        return filmStorage.findFilm(findingSubstring, parameters);
     }
 }

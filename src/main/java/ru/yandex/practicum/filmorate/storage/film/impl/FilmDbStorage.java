@@ -21,7 +21,6 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,8 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static java.lang.Integer.compare;
 
 @Component
 @RequiredArgsConstructor
@@ -133,26 +130,6 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getCommonFilms(Long userId, Long friendId) {
-        //проверки на существование пользователей
-        userStorage.getUserById(userId);
-        userStorage.getUserById(friendId);
-        //получение id-шников лайкнутых фильмов среди двух пользователей
-        List<Long> ids = likeStorage.getCommonFilmIds(userId, friendId);
-        //создание фильмов
-        List<Film> commonFilms = new ArrayList<>();
-        for (Long id : ids) {
-            commonFilms.add(getFilmById(id));
-        }
-        //сортировка фильмов по популярности
-        return commonFilms.stream()
-                .sorted((p0, p1) -> {
-                    int comp = compare(p0.getLikes().size(), p1.getLikes().size());
-                    return -1 * comp;
-                }).collect(Collectors.toList());
-    }
-
-    @Override
     public List<Film> getDirectorFilmsByYear(Long directorId) {
         directorStorage.getById(directorId);
 
@@ -217,46 +194,39 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> findFilmsByTitle(String parameter) {
-        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, " +
-                "m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name, d.id AS director_id, d.name AS director_name, l.user_id AS user_who_liked " +
-                "FROM films f " +
-                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
-                "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
-                "LEFT JOIN genres g ON fg.genre_id = g.id " +
-                "LEFT JOIN film_directors fd ON f.id = fd.film_id " +
-                "LEFT JOIN directors d ON fd.director_id = d.id " +
-                "LEFT JOIN likes AS l ON f.id = l.film_id " +
-                "WHERE LOWER(f.name) LIKE LOWER(?)" +
-                "GROUP BY f.id, l.user_id";
-        return jdbcTemplate.query(sqlQuery, this::createFilm, String.format("%%%s%%", parameter));
-    }
+    public List<Film> findFilm(String findingSubstring, List<String> params) {
+        StringBuilder sqlQuery = new StringBuilder();
+        sqlQuery
+                .append("SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, m.name AS mpa_name, ")
+                .append("g.id AS genre_id, g.name AS genre_name, d.id AS director_id, d.name AS director_name, COUNT(l.user_id) AS like_count ")
+                .append("FROM films f ")
+                .append("LEFT JOIN mpa m ON f.mpa_id = m.id ")
+                .append("LEFT JOIN film_genres fg ON f.id = fg.film_id ")
+                .append("LEFT JOIN genres g ON fg.genre_id = g.id ")
+                .append("LEFT JOIN film_directors fd ON f.id = fd.film_id ")
+                .append("LEFT JOIN directors d ON fd.director_id = d.id ")
+                .append("LEFT JOIN likes l ON f.id = l.film_id ");
 
-    @Override
-    public List<Film> findFilmsByDirector(String parameter) {
-        String sqlQuery = "SELECT f.id, f.name, f.description, f.releaseDate, f.duration, m.id AS mpa_id, " +
-                "m.name AS mpa_name, g.id AS genre_id, g.name AS genre_name, d.id AS director_id, d.name AS director_name, l.user_id AS user_who_liked " +
-                "FROM films f " +
-                "LEFT JOIN mpa m ON f.mpa_id = m.id " +
-                "LEFT JOIN film_genres fg ON f.id = fg.film_id " +
-                "LEFT JOIN genres g ON fg.genre_id = g.id " +
-                "LEFT JOIN film_directors fd ON f.id = fd.film_id " +
-                "LEFT JOIN directors d ON fd.director_id = d.id " +
-                "LEFT JOIN likes AS l ON f.id = l.film_id " +
-                "WHERE LOWER(d.name) LIKE LOWER(?)" +
-                "GROUP BY f.id, l.user_id";
-        return jdbcTemplate.query(sqlQuery, this::createFilm, String.format("%%%s%%", parameter));
+        if (params.contains("title") & params.contains("director")) {
+            sqlQuery.append("WHERE LOWER(f.name) LIKE LOWER(?) OR LOWER(d.name) LIKE LOWER(?) ")
+                    .append("GROUP BY f.id ")
+                    .append("ORDER BY like_count DESC");
+            return jdbcTemplate.query(sqlQuery.toString(), this::createFilm, String.format("%%%s%%", findingSubstring), String.format("%%%s%%", findingSubstring));
+        } else if (params.contains("title")) {
+            sqlQuery.append("WHERE LOWER(f.name) LIKE LOWER(?) ");
+        } else if (params.contains("director")) {
+            sqlQuery.append("WHERE LOWER(d.name) LIKE LOWER(?) ");
+        } else {
+            throw new RuntimeException("Неверные параметры запроса");
+        }
+        sqlQuery.append("GROUP BY f.id ")
+                .append("ORDER BY like_count DESC");
+
+        return jdbcTemplate.query(sqlQuery.toString(), this::createFilm, String.format("%%%s%%", findingSubstring));
     }
 
     private List<Film> createFilm(ResultSet rs) throws SQLException {
         ResultSetExtractor<List<Film>> resultSetExtractor = rs1 -> {
-            ResultSetMetaData metaData = rs.getMetaData();
-            boolean feelLikes = false;
-            for (int i = 1; i <= metaData.getColumnCount(); i++) {
-                if ("user_who_liked".equalsIgnoreCase(metaData.getColumnLabel(i))) {
-                    feelLikes = true;
-                }
-            }
             Map<Long, Film> list = new LinkedHashMap<>();
             while (rs1.next()) {
                 if (list.containsKey(rs1.getLong("id"))) {
@@ -273,14 +243,6 @@ public class FilmDbStorage implements FilmStorage {
                                 .name(rs1.getString("director_name"))
                                 .build());
                     }
-
-                    if (feelLikes) {
-                        if (rs1.getLong("user_who_liked") != 0) {
-                            list.get(rs1.getLong("id"))
-                                    .getLikes()
-                                    .add(rs1.getLong("user_who_liked"));
-                        }
-                    }
                 } else {
                     Film film = Film.builder()
                             .id(rs1.getLong("id"))
@@ -292,7 +254,6 @@ public class FilmDbStorage implements FilmStorage {
                                     .id(rs1.getLong("mpa_id"))
                                     .name(rs1.getString("mpa_name"))
                                     .build())
-                            .likes(new HashSet<>())
                             .genres(new HashSet<>())
                             .directors(new HashSet<>())
                             .build();
@@ -310,13 +271,6 @@ public class FilmDbStorage implements FilmStorage {
                                 .name(rs1.getString("director_name"))
                                 .build());
                     }
-
-                    if (feelLikes) {
-                        if (rs1.getLong("user_who_liked") != 0) {
-                            film.getLikes().add(rs1.getLong("user_who_liked"));
-                        }
-                    }
-
                     list.put(film.getId(), film);
                 }
             }

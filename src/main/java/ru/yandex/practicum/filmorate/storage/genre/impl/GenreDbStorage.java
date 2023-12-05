@@ -34,13 +34,6 @@ public class GenreDbStorage implements GenreStorage {
     }
 
     @Override
-    public List<Genre> getGenreListByFilmId(Long filmId) {
-        String sqlQuery = "SELECT * FROM genres WHERE id IN (SELECT genre_id FROM film_genres WHERE film_id = ?)";
-
-        return jdbcTemplate.query(sqlQuery, this::createGenre, filmId);
-    }
-
-    @Override
     public void setFilmsGenres(Long filmId, Set<Genre> genres) {
         String sqlQueryCleanFilmsGenres = "DELETE FROM film_genres WHERE film_id = ?";
         String sqlQuerySetGenres = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
@@ -52,7 +45,6 @@ public class GenreDbStorage implements GenreStorage {
             }
         }
     }
-
 
     private Genre createGenre(ResultSet rs, int rowNum) throws SQLException {
         return Genre.builder()

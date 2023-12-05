@@ -77,7 +77,6 @@ class FilmStorageTest {
             .releaseDate(LocalDate.of(2023, 7, 19))
             .duration(180)
             .mpa(mpa1)
-            .likes(Set.of())
             .genres(Set.of(genre1))
             .directors(Set.of())
             .build();
@@ -90,7 +89,6 @@ class FilmStorageTest {
             .releaseDate(LocalDate.of(1994, 6, 23))
             .duration(142)
             .mpa(mpa2)
-            .likes(Set.of())
             .genres(Set.of(genre2))
             .directors(Set.of())
             .build();

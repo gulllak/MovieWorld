@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -18,8 +17,8 @@ public class UserService {
 
     private final EventStorage eventStorage;
 
-    public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
-                       @Qualifier("filmDbStorage") FilmStorage filmStorage,
+    public UserService(UserStorage userStorage,
+                       FilmStorage filmStorage,
                        EventStorage eventStorage) {
         this.userStorage = userStorage;
         this.filmStorage = filmStorage;

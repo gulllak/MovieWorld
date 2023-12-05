@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
 import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
-import ru.yandex.practicum.filmorate.util.EventType;
-import ru.yandex.practicum.filmorate.util.Operation;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -47,7 +47,7 @@ public class LikeDbStorage implements LikeStorage {
     public List<Long> getPopularFilms(Integer limit, Long genreId, Integer year) {
         StringBuilder sqlQuery = new StringBuilder();
         sqlQuery
-                .append("SELECT f.id, COUNT(l.user_id) AS count_likes FROM films AS f ")
+                .append("SELECT f.id AS film_id, COUNT(l.user_id) AS count_likes FROM films AS f ")
                 .append("LEFT JOIN likes AS l ON l.film_id = f.id ");
         if (genreId != null && year != null) {
             sqlQuery
@@ -76,11 +76,19 @@ public class LikeDbStorage implements LikeStorage {
 
     @Override
     public List<Long> getCommonFilmIds(Long userId, Long friendId) {
-        String sqlQuery = "SELECT l1.film_id\n" +
-                "FROM likes AS l1\n" +
-                "INNER JOIN likes AS l2 ON l1.film_id = l2.film_id AND l1.user_id <> l2.user_id\n" +
-                "WHERE l1.user_id = ? AND l2.user_id = ?;";
-        return jdbcTemplate.queryForList(sqlQuery, Long.class, userId, friendId);
+        String sqlQuery = "SELECT shared_likes.film_id, all_likes.total_like_count " +
+                "FROM (SELECT film_id " +
+                "    FROM likes " +
+                "    WHERE user_id = ? " +
+                "    INTERSECT " +
+                "    SELECT film_id " +
+                "    FROM likes " +
+                "    WHERE user_id = ?) AS shared_likes " +
+                "JOIN (SELECT film_id, COUNT(*) AS total_like_count " +
+                "    FROM likes " +
+                "    GROUP BY film_id) AS all_likes ON shared_likes.film_id = all_likes.film_id " +
+                "ORDER BY all_likes.total_like_count DESC";
+        return jdbcTemplate.query(sqlQuery, this::getId, userId, friendId);
     }
 
     @Override
@@ -96,6 +104,6 @@ public class LikeDbStorage implements LikeStorage {
     }
 
     private Long getId(ResultSet rs, int rowNum) throws SQLException {
-        return rs.getLong("id");
+        return rs.getLong("film_id");
     }
 }

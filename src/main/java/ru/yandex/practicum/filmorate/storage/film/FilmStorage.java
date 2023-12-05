@@ -20,8 +20,6 @@ public interface FilmStorage {
 
     List<Film> getPopularFilms(Integer count, Long genreId, Integer year);
 
-    List<Film> getCommonFilms(Long userId, Long friendId);
-
     List<Film> getRecommendations(Long id);
 
     List<Film> getDirectorFilmsByYear(Long directorId);
@@ -30,7 +28,5 @@ public interface FilmStorage {
 
     void remove(Long filmId);
 
-    List<Film> findFilmsByDirector(String parameter);
-
-    List<Film> findFilmsByTitle(String parameter);
+    List<Film> findFilm(String findingSubstring, List<String> params);
 }
