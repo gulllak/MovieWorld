@@ -1,12 +1,12 @@
-package ru.yandex.practicum.filmorate.storage.like.impl;
+package ru.yandex.practicum.filmorate.storage.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
-import ru.yandex.practicum.filmorate.storage.event.EventStorage;
-import ru.yandex.practicum.filmorate.storage.like.LikeStorage;
+import ru.yandex.practicum.filmorate.storage.EventStorage;
+import ru.yandex.practicum.filmorate.storage.LikeStorage;
 import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Operation;
 

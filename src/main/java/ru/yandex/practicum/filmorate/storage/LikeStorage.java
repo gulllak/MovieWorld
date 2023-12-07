@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.like;
+package ru.yandex.practicum.filmorate.storage;
 
 import java.util.List;
 

@@ -10,7 +10,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.impl.UserDbStorage;
+import ru.yandex.practicum.filmorate.storage.impl.UserDbStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
