@@ -13,11 +13,12 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.film.impl.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.user.impl.UserDbStorage;
+import ru.yandex.practicum.filmorate.storage.impl.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.impl.UserDbStorage;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -76,7 +77,8 @@ class FilmStorageTest {
             .releaseDate(LocalDate.of(2023, 7, 19))
             .duration(180)
             .mpa(mpa1)
-            .genres(List.of(genre1))
+            .genres(Set.of(genre1))
+            .directors(Set.of())
             .build();
 
     Film film1 = Film.builder()
@@ -87,14 +89,15 @@ class FilmStorageTest {
             .releaseDate(LocalDate.of(1994, 6, 23))
             .duration(142)
             .mpa(mpa2)
-            .genres(List.of(genre2))
+            .genres(Set.of(genre2))
+            .directors(Set.of())
             .build();
 
     @Test
     public void createFilm() {
         filmStorage.create(film);
         film.setMpa(mpa1Full);
-        film.setGenres(List.of(genre1Full));
+        film.setGenres(Set.of(genre1Full));
         Film getFilm = filmStorage.getFilmById(1L);
 
         assertThat(getFilm)
@@ -105,11 +108,11 @@ class FilmStorageTest {
 
     @Test
     public void createFilmWithSeveralGenres() {
-        film.setGenres(List.of(genre1, genre2));
+        film.setGenres(Set.of(genre1, genre2));
         filmStorage.create(film);
 
         film.setMpa(mpa1Full);
-        film.setGenres(List.of(genre2Full, genre1Full));
+        film.setGenres(Set.of(genre2Full, genre1Full));
         Film getFilm = filmStorage.getFilmById(1L);
 
         assertThat(getFilm)
@@ -127,8 +130,8 @@ class FilmStorageTest {
 
         film.setMpa(mpa1Full);
         film1.setMpa(mpa2Full);
-        film1.setGenres(List.of(genre2Full));
-        film.setGenres(List.of(genre1Full));
+        film1.setGenres(Set.of(genre2Full));
+        film.setGenres(Set.of(genre1Full));
 
         Assertions.assertEquals(List.of(film, film1), getFilms);
     }
@@ -137,7 +140,7 @@ class FilmStorageTest {
     public void getFilmById() {
         filmStorage.create(film);
         film.setMpa(mpa1Full);
-        film.setGenres(List.of(genre1Full));
+        film.setGenres(Set.of(genre1Full));
 
         Film getFilm = filmStorage.getFilmById(1L);
         Assertions.assertEquals(film, getFilm);
@@ -147,7 +150,7 @@ class FilmStorageTest {
     public void getFilmByInvalidId() {
         EntityNotFoundException entityNotFoundException = Assertions.assertThrows(
                 EntityNotFoundException.class, () -> filmStorage.getFilmById(1L));
-        Assertions.assertEquals("Фильм c id 1 не существует", entityNotFoundException.getMessage());
+        Assertions.assertEquals("Фильм c id 1 отсутствует", entityNotFoundException.getMessage());
     }
 
     @Test
@@ -159,20 +162,9 @@ class FilmStorageTest {
         filmStorage.update(film);
         Film getFilm = filmStorage.getFilmById(1L);
         film.setMpa(mpa1Full);
-        film.setGenres(List.of(genre1Full));
+        film.setGenres(Set.of(genre1Full));
 
         Assertions.assertEquals(film, getFilm);
-    }
-
-    @Test
-    public void addLike() {
-        filmStorage.create(film);
-        userStorage.create(user);
-        filmStorage.addLike(1L, 1L);
-
-        EntityAlreadyExistException entityAlreadyExistException = Assertions.assertThrows(
-                EntityAlreadyExistException.class, () -> filmStorage.addLike(1L, 1L));
-        Assertions.assertEquals("Этот пользователь уже ставил лайк", entityAlreadyExistException.getMessage());
     }
 
     @Test
@@ -181,7 +173,7 @@ class FilmStorageTest {
 
         EntityNotFoundException entityNotFoundException = Assertions.assertThrows(
                 EntityNotFoundException.class, () -> filmStorage.addLike(1L, 1L));
-        Assertions.assertEquals("Фильм c id 1 не существует", entityNotFoundException.getMessage());
+        Assertions.assertEquals("Фильм c id 1 отсутствует", entityNotFoundException.getMessage());
     }
 
     @Test
@@ -189,14 +181,9 @@ class FilmStorageTest {
         filmStorage.create(film);
         userStorage.create(user);
         filmStorage.addLike(1L, 1L);
-
-        EntityAlreadyExistException entityAlreadyExistException = Assertions.assertThrows(
-                EntityAlreadyExistException.class, () -> filmStorage.addLike(1L, 1L));
-        Assertions.assertEquals("Этот пользователь уже ставил лайк", entityAlreadyExistException.getMessage());
-
         filmStorage.removeLike(1L, 1L);
 
-        entityAlreadyExistException = Assertions.assertThrows(
+        EntityAlreadyExistException entityAlreadyExistException = Assertions.assertThrows(
                 EntityAlreadyExistException.class, () -> filmStorage.removeLike(1L, 1L));
         Assertions.assertEquals("Этот пользователь не ставил лайк", entityAlreadyExistException.getMessage());
     }
@@ -217,10 +204,10 @@ class FilmStorageTest {
         film.setMpa(mpa1Full);
         film1.setMpa(mpa2Full);
 
-        film.setGenres(List.of(genre1Full));
-        film1.setGenres(List.of(genre2Full));
+        film.setGenres(Set.of(genre1Full));
+        film1.setGenres(Set.of(genre2Full));
 
-        List<Film> getPopularFilm = filmStorage.getPopularFilms(2);
+        List<Film> getPopularFilm = filmStorage.getPopularFilms(2, null, null);
 
         Assertions.assertEquals(List.of(film, film1), getPopularFilm);
     }

@@ -1,11 +1,11 @@
-package ru.yandex.practicum.filmorate.storage.mpa.impl;
+package ru.yandex.practicum.filmorate.storage.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
+import ru.yandex.practicum.filmorate.storage.MpaStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,7 +27,7 @@ public class MpaDbStorage implements MpaStorage {
         String sql = "SELECT * FROM mpa WHERE id = ?";
         List<Mpa> mpas = jdbcTemplate.query(sql, MpaDbStorage::createMpa, id);
         if (mpas.size() != 1) {
-            throw new EntityNotFoundException(String.format("Рейтинг с id %s не единственный", id));
+            throw new EntityNotFoundException(String.format("Рейтинг с id %s отсутствует", id));
         }
         return mpas.get(0);
     }

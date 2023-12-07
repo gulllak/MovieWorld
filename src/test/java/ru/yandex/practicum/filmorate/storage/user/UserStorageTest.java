@@ -10,7 +10,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.impl.UserDbStorage;
+import ru.yandex.practicum.filmorate.storage.impl.UserDbStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -65,7 +65,7 @@ class UserStorageTest {
     public void testFindUserByInvalidId() {
         EntityNotFoundException entityNotFoundException = Assertions.assertThrows(
                 EntityNotFoundException.class, () -> userStorage.getUserById(1L));
-        Assertions.assertEquals("Пользователя c id 1 не существует", entityNotFoundException.getMessage());
+        Assertions.assertEquals("Пользователя c id 1 отсутствует", entityNotFoundException.getMessage());
     }
 
     @Test

@@ -13,7 +13,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
@@ -44,7 +44,7 @@ class FilmControllerTest {
             .releaseDate(LocalDate.of(2022, 3, 24))
             .duration(187)
             .mpa(mpa)
-            .genres(new ArrayList<>())
+            .genres(new HashSet<>())
             .build();
 
     @Test
@@ -147,7 +147,7 @@ class FilmControllerTest {
                         .content(objectMapper.writeValueAsString(film))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(content().json("{\"error\":\"Фильм c id 1 не существует\"}"));
+                .andExpect(content().json("{\"error\":\"Фильм c id 1 отсутствует\"}"));
     }
 
     @Test

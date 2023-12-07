@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.user.impl;
+package ru.yandex.practicum.filmorate.storage.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,7 +9,10 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.storage.EventStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -22,6 +25,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
+
+    private final EventStorage eventStorage;
 
     @Override
     public List<User> findAll() {
@@ -57,7 +62,7 @@ public class UserDbStorage implements UserStorage {
         String sqlQuery = "SELECT * FROM users WHERE id = ?";
         List<User> users = jdbcTemplate.query(sqlQuery, this::createUser, id);
         if (users.size() != 1) {
-            throw new EntityNotFoundException(String.format("Пользователя c id %s не существует", id));
+            throw new EntityNotFoundException(String.format("Пользователя c id %s отсутствует", id));
         }
         return users.get(0);
     }
@@ -77,12 +82,14 @@ public class UserDbStorage implements UserStorage {
             throw new EntityAlreadyExistException("Дружба уже существует");
         }
         jdbcTemplate.update(sqlQuery, id, friendId);
+        eventStorage.addEvent(id, friendId, EventType.FRIEND, Operation.ADD);
     }
 
     @Override
     public void removeFriend(Long id, Long friendId) {
         String sqlQuery = "DELETE FROM friends WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(sqlQuery, id, friendId);
+        eventStorage.addEvent(id, friendId, EventType.FRIEND, Operation.REMOVE);
     }
 
     @Override
@@ -91,6 +98,11 @@ public class UserDbStorage implements UserStorage {
                 "INTERSECT SELECT friend_id FROM friends WHERE user_id = ?)";
 
         return jdbcTemplate.query(sqlQuery, this::createUser, id, otherId);
+    }
+
+    @Override
+    public void remove(Long userId) {
+        jdbcTemplate.update("DELETE FROM users WHERE id = ?", userId);
     }
 
     private User createUser(ResultSet rs, int rowNum) throws SQLException {

@@ -1,11 +1,11 @@
-package ru.yandex.practicum.filmorate.storage.genre.impl;
+package ru.yandex.practicum.filmorate.storage.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,20 +28,13 @@ public class GenreDbStorage implements GenreStorage {
         String sql = "SELECT * FROM genres WHERE id = ?";
         List<Genre> genres = jdbcTemplate.query(sql, this::createGenre, id);
         if (genres.size() != 1) {
-            throw new EntityNotFoundException(String.format("Жанр с id %s не единственный", id));
+            throw new EntityNotFoundException(String.format("Жанр с id %s отсутствует", id));
         }
         return genres.get(0);
     }
 
     @Override
-    public List<Genre> getGenreListByFilmId(Long filmId) {
-        String sqlQuery = "SELECT * FROM genres WHERE id IN (SELECT genre_id FROM film_genres WHERE film_id = ?)";
-
-        return jdbcTemplate.query(sqlQuery, this::createGenre, filmId);
-    }
-
-    @Override
-    public void setFilmsGenres(Long filmId, List<Genre> genres) {
+    public void setFilmsGenres(Long filmId, Set<Genre> genres) {
         String sqlQueryCleanFilmsGenres = "DELETE FROM film_genres WHERE film_id = ?";
         String sqlQuerySetGenres = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
         jdbcTemplate.update(sqlQueryCleanFilmsGenres, filmId);
@@ -52,7 +45,6 @@ public class GenreDbStorage implements GenreStorage {
             }
         }
     }
-
 
     private Genre createGenre(ResultSet rs, int rowNum) throws SQLException {
         return Genre.builder()
